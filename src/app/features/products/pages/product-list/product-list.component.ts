@@ -130,7 +130,7 @@ export class ProductListComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.detailErrorMessage = error.status === 404
-            ? 'Không tìm thấy sản phẩm này trên server.'
+            ? 'Không tìm thấy sản phẩm này.'
             : 'Không tải được chi tiết sản phẩm. Vui lòng thử lại.';
         }
       });
@@ -271,7 +271,7 @@ export class ProductListComponent implements OnInit {
           this.products = [];
           this.productAvailabilityMap.clear();
           this.pageData = this.createEmptyPage(page);
-          this.errorMessage = 'Không tải được danh sách sản phẩm từ server. Vui lòng kiểm tra backend hoặc thử lại.';
+          this.errorMessage = 'Không tải được danh sách sản phẩm. Vui lòng kiểm tra hệ thống hoặc thử lại.';
         }
       });
   }
@@ -318,10 +318,10 @@ export class ProductListComponent implements OnInit {
   }
 
   private loadBranches(): void {
-    this.branchService.getActiveBranches(0, 100)
+    this.branchService.getActiveBranchOptions()
       .pipe(
-        switchMap((pageResponse) => {
-          this.branches = pageResponse.content || [];
+        switchMap((branches) => {
+          this.branches = branches;
           this.selectedBranchId = this.selectedBranchId || this.branches[0]?.id || '';
           return this.selectedBranchId ? this.branchAvailabilityService.getProductAvailabilities(this.selectedBranchId) : of([]);
         })

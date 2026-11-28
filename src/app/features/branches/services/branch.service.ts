@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { BaseResponse } from '../../../shared/models/base-response.model';
 import { PageResponse } from '../../../shared/models/page-response.model';
+import { loadAllPages } from '../../../shared/utils/load-all-pages';
 import { BranchCreateRequest, BranchStatusUpdateRequest, BranchUpdateRequest } from '../models/branch-request.model';
 import { BranchHours, BranchHoursRequest } from '../models/branch-hours.model';
 import { Branch } from '../models/branch.model';
@@ -43,6 +44,10 @@ export class BranchService {
           };
         })
       );
+  }
+
+  getActiveBranchOptions(): Observable<Branch[]> {
+    return loadAllPages(page => this.getActiveBranches(page));
   }
 
   private normalizePageResponse(data: PageResponse<Branch> | Branch[], page: number, size: number): PageResponse<Branch> {

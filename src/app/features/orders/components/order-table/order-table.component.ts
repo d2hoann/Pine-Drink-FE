@@ -12,6 +12,6 @@ export class OrderTableComponent {
   @Output() actionClick = new EventEmitter<{order: Order, type: string}>();
 
   getItemsPreview(order: Order): string {
-    return order.items.map((i: OrderItem) => i.name || i.productName || 'Item').join(', ');
+    return order.items.map((i: OrderItem) => i.name || i.productName || 'Món').join(', ');
   }
 }

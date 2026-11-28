@@ -2,7 +2,7 @@
   <header class="admin-head">
     <div class="head-copy">
       <h1>Danh mục</h1>
-      <p>CRUD nhóm món Pine Drink, tối ưu thao tác nhanh.</p>
+      <p>Quản lý các nhóm món trên thực đơn Pine Drink.</p>
     </div>
 
     <div class="head-actions">
@@ -47,11 +47,11 @@
 
       <label class="status-filter" for="category-status-filter">
         <span>Trạng thái</span>
-        <select id="category-status-filter" [(ngModel)]="statusFilter">
-          <option value="ALL">Tất cả</option>
-          <option value="ACTIVE">Đang bật</option>
-          <option value="INACTIVE">Tạm ẩn</option>
-        </select>
+        <app-combobox inputId="category-status-filter" [(ngModel)]="statusFilter" label="Trạng thái danh mục" placeholder="Trạng thái danh mục">
+          <ng-template comboOption value="ALL" label="Tất cả"></ng-template>
+          <ng-template comboOption value="ACTIVE" label="Đang bật"></ng-template>
+          <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+        </app-combobox>
       </label>
 
       <span class="loading-pill" *ngIf="loading">Đang tải...</span>
@@ -147,7 +147,7 @@
 </section>
 
 <div class="drawer-backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
-<aside class="category-drawer" [class.open]="drawerOpen" aria-label="Form danh mục">
+<aside class="category-drawer" [class.open]="drawerOpen" aria-label="Biểu mẫu danh mục">
   <form [formGroup]="form" (ngSubmit)="saveCategory()">
     <div class="drawer-head">
       <div>
@@ -197,7 +197,7 @@
     </div>
 
     <label>
-      Hoặc URL ảnh (Nếu có sẵn)
+      Hoặc Đường dẫn ảnh (Nếu có sẵn)
       <input id="category-image-input" type="url" formControlName="imageUrl" placeholder="https://..." />
     </label>
 

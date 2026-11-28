@@ -1,20 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateService } from '@ngx-translate/core';
+import { of } from 'rxjs';
 import { AppComponent } from './app.component';
-import { GlobalLoadingComponent } from './shared/components/global-loading/global-loading.component';
-import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
+import { AuthService } from './core/services/auth.service';
+import { SharedModule } from './shared/shared.module';
 
 describe('AppComponent', () => {
+  const useLanguage = jasmine.createSpy('useLanguage');
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
-      declarations: [AppComponent, GlobalLoadingComponent, ToastContainerComponent]
+      imports: [RouterTestingModule, SharedModule],
+      declarations: [AppComponent],
+      providers: [
+        { provide: TranslateService, useValue: { use: useLanguage } },
+        { provide: AuthService, useValue: { bootstrapCurrentUser: () => of(null) } }
+      ]
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  it('starts the whole interface in Vietnamese', () => {
+    TestBed.createComponent(AppComponent);
+    expect(useLanguage).toHaveBeenCalledOnceWith('vi');
   });
 });

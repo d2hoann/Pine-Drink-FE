@@ -11,6 +11,7 @@ import { DailyStockService } from '../../services/daily-stock.service';
 import { ProductService } from '../../services/product.service';
 import { ProductVariantService } from '../../services/product-variant.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ApiErrorMessageService } from '../../../../core/services/api-error-message.service';
 
 interface VariantOption extends ProductVariantSummary { productName: string; }
 
@@ -23,13 +24,13 @@ export class DailyStocksPageComponent implements OnInit {
   readonly quotaForm = this.formBuilder.nonNullable.group({
     variantId: ['', Validators.required],
     dailyQuantity: [0, [Validators.required, Validators.min(0)]],
-    reason: ['Set quota đầu ngày', [Validators.maxLength(255)]]
+    reason: ['Đặt hạn mức đầu ngày', [Validators.maxLength(255)]]
   });
 
   readonly copyForm = this.formBuilder.nonNullable.group({
     sourceDate: [this.toDateInput(this.addDays(new Date(), -1)), Validators.required],
     overwrite: [false],
-    reason: ['Copy quota from previous day', [Validators.maxLength(255)]]
+    reason: ['Sao chép hạn mức từ ngày trước', [Validators.maxLength(255)]]
   });
 
   branches: Branch[] = [];
@@ -39,7 +40,6 @@ export class DailyStocksPageComponent implements OnInit {
   selectedBranchId = '';
   selectedDate = this.toDateInput(new Date());
   selectedStock: DailyStock | null = null;
-  variantSearchTerm = '';
   loading = false;
   loadingDetail = false;
   saving = false;
@@ -57,7 +57,8 @@ export class DailyStocksPageComponent implements OnInit {
     private readonly productService: ProductService,
     private readonly variantService: ProductVariantService,
     private readonly dailyStockService: DailyStockService,
-    private readonly toast: ToastService
+    private readonly toast: ToastService,
+    private readonly apiErrorMessage: ApiErrorMessageService
   ) { }
 
   ngOnInit(): void { this.loadInitialData(); }
@@ -67,14 +68,6 @@ export class DailyStocksPageComponent implements OnInit {
   get totalReserved(): number { return this.stocks.reduce((sum, stock) => sum + (stock.reservedQuantity || 0), 0); }
   get totalSold(): number { return this.stocks.reduce((sum, stock) => sum + (stock.soldQuantity || 0), 0); }
   get selectedBranch(): Branch | undefined { return this.branches.find((branch) => branch.id === this.selectedBranchId); }
-  get filteredVariants(): VariantOption[] {
-    if (!this.variantSearchTerm.trim()) { return this.variants; }
-    const term = this.variantSearchTerm.toLowerCase();
-    return this.variants.filter((v) =>
-      v.productName.toLowerCase().includes(term) ||
-      v.variantName.toLowerCase().includes(term)
-    );
-  }
 
   onBranchChange(branchId: string): void { this.selectedBranchId = branchId; this.loadStocks(); }
   onDateChange(date: string): void { this.selectedDate = date; this.loadStocks(); }
@@ -82,8 +75,7 @@ export class DailyStocksPageComponent implements OnInit {
 
   openCreateDrawer(): void {
     this.selectedStock = null;
-    this.variantSearchTerm = '';
-    this.quotaForm.reset({ variantId: '', dailyQuantity: 0, reason: 'Set quota đầu ngày' });
+    this.quotaForm.reset({ variantId: '', dailyQuantity: 0, reason: 'Đặt hạn mức đầu ngày' });
     this.drawerOpen = true;
     // Lazy load variants only when drawer opens
     if (this.variants.length === 0 && !this.variantsLoading) {
@@ -102,13 +94,13 @@ export class DailyStocksPageComponent implements OnInit {
           this.quotaForm.reset({
             variantId: detail.variantId,
             dailyQuantity: detail.dailyQuantity || 0,
-            reason: 'Điều chỉnh quota trong ngày'
+            reason: 'Điều chỉnh hạn mức trong ngày'
           });
           this.drawerOpen = true;
           this.loadLogs(detail);
         },
         error: () => {
-          this.errorMessage = 'Không tải được chi tiết daily stock.';
+          this.errorMessage = 'Không tải được chi tiết tồn kho theo ngày.';
         }
       });
   }
@@ -138,11 +130,11 @@ export class DailyStocksPageComponent implements OnInit {
       });
 
     request$.pipe(finalize(() => (this.saving = false))).subscribe({
-      next: () => { this.successMessage = 'Đã lưu quota tồn kho ngày.'; this.drawerOpen = false; this.loadStocks(); },
+      next: () => { this.successMessage = 'Đã lưu hạn mức tồn kho ngày.'; this.drawerOpen = false; this.loadStocks(); },
       error: (error) => {
-        this.errorMessage = this.resolveErrorMessage(
+        this.errorMessage = this.apiErrorMessage.resolve(
           error,
-          'Không lưu được quota. Kiểm tra số lượng >= sold + reserved hoặc quyền thao tác.'
+          'Không lưu được hạn mức. Kiểm tra số lượng đặt có đủ cho số đã bán và đang giữ, hoặc kiểm tra quyền thao tác.'
         );
       }
     });
@@ -165,14 +157,14 @@ export class DailyStocksPageComponent implements OnInit {
       reason: value.reason
     }).pipe(finalize(() => (this.saving = false))).subscribe({
       next: (result) => {
-        this.successMessage = `Copy xong: tạo ${result.createdCount}, cập nhật ${result.updatedCount}, bỏ qua ${result.skippedCount}.`;
+        this.successMessage = `Đã sao chép: tạo ${result.createdCount}, cập nhật ${result.updatedCount}, bỏ qua ${result.skippedCount}.`;
         this.copyOpen = false;
         this.loadStocks();
       },
       error: (error) => {
-        this.errorMessage = this.resolveErrorMessage(
+        this.errorMessage = this.apiErrorMessage.resolve(
           error,
-          'Không copy được quota. Kiểm tra ngày nguồn hoặc rule overwrite.'
+          'Không sao chép được hạn mức. Hãy kiểm tra ngày nguồn và lựa chọn ghi đè.'
         );
       }
     });
@@ -189,6 +181,15 @@ export class DailyStocksPageComponent implements OnInit {
     return 'Còn bán';
   }
 
+  stockLogReason(reason?: string | null): string {
+    if (!reason) return 'Không có lý do';
+    if (reason === 'Set quota đầu ngày') return 'Đặt hạn mức đầu ngày';
+    if (reason === 'Điều chỉnh quota trong ngày') return 'Điều chỉnh hạn mức trong ngày';
+    if (reason === 'Copy quota from previous day') return 'Sao chép hạn mức từ ngày trước';
+    const source = /^Copy quota from (\d{4})-(\d{2})-(\d{2})$/.exec(reason);
+    return source ? `Sao chép hạn mức từ ngày ${source[3]}/${source[2]}/${source[1]}` : reason;
+  }
+
   trackStock(_: number, stock: DailyStock): string { return stock.id; }
   trackVariant(_: number, variant: VariantOption): string { return variant.id; }
   trackBranch(_: number, branch: Branch): string { return branch.id; }
@@ -197,11 +198,11 @@ export class DailyStocksPageComponent implements OnInit {
   private loadInitialData(): void {
     this.bootLoading = true;
     this.clearMessages();
-    this.branchService.getActiveBranches(0, 100)
+    this.branchService.getActiveBranchOptions()
       .pipe(finalize(() => (this.bootLoading = false)))
       .subscribe({
         next: (branches) => {
-          this.branches = branches.content || [];
+          this.branches = branches;
           this.selectedBranchId = this.branches[0]?.id || '';
           if (this.selectedBranchId) { this.loadStocks(); }
         },
@@ -211,14 +212,15 @@ export class DailyStocksPageComponent implements OnInit {
 
   private loadAllVariants(): void {
     this.variantsLoading = true;
+    // Nạp danh mục sản phẩm cùng biến thể để ô chọn tìm được theo cả tên món.
     forkJoin({
       variants: this.variantService.getAllActiveVariants(),
-      products: this.productService.getProductSummaries(0, 100)
+      products: this.productService.getProductOptions()
     })
       .pipe(finalize(() => (this.variantsLoading = false)))
       .subscribe({
         next: ({ variants, products }) => {
-          const productNameById = this.buildProductNameMap(products.content || []);
+          const productNameById = this.buildProductNameMap(products);
           this.variants = variants.map((variant) => ({
             ...variant,
             productName: productNameById.get(variant.productId) || 'Sản phẩm'
@@ -226,7 +228,7 @@ export class DailyStocksPageComponent implements OnInit {
         },
         error: () => {
           this.variants = [];
-          this.errorMessage = 'Không tải được danh sách biến thể active.';
+          this.errorMessage = 'Không tải được danh sách biến thể đang bán.';
         }
       });
   }
@@ -239,7 +241,7 @@ export class DailyStocksPageComponent implements OnInit {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (stocks) => { this.stocks = stocks || []; },
-        error: () => { this.stocks = []; this.errorMessage = 'Không tải được daily stock.'; }
+        error: () => { this.stocks = []; this.errorMessage = 'Không tải được tồn kho theo ngày.'; }
       });
   }
 
@@ -264,7 +266,4 @@ export class DailyStocksPageComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  private resolveErrorMessage(error: any, fallback: string): string {
-    return error?.error?.message || error?.error?.errorMessage || error?.message || fallback;
-  }
 }

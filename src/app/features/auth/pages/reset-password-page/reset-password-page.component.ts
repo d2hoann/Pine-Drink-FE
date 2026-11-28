@@ -1,3 +1,4 @@
+import { ApiErrorMessageService } from '../../../../core/services/api-error-message.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,7 +21,8 @@ export class ResetPasswordPageComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly apiErrorMessage: ApiErrorMessageService
   ) {}
 
   ngOnInit(): void {
@@ -30,7 +32,7 @@ export class ResetPasswordPageComponent implements OnInit {
       this.email = params['email'] || '';
 
       if (!this.resetToken) {
-        this.errorMessage = 'Token đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.';
+        this.errorMessage = 'Mã đặt lại mật khẩu không hợp lệ. Vui lòng thử lại.';
       }
     });
 
@@ -61,7 +63,7 @@ export class ResetPasswordPageComponent implements OnInit {
     }
 
     if (!this.resetToken) {
-      this.errorMessage = 'Token đặt lại mật khẩu không hợp lệ.';
+      this.errorMessage = 'Mã đặt lại mật khẩu không hợp lệ.';
       return;
     }
 
@@ -83,7 +85,7 @@ export class ResetPasswordPageComponent implements OnInit {
       },
       error: (error) => {
         this.submitting = false;
-        this.errorMessage = error?.error?.message || 'Không thể đặt lại mật khẩu. Vui lòng thử lại.';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không thể đặt lại mật khẩu. Vui lòng thử lại.');
       }
     });
   }

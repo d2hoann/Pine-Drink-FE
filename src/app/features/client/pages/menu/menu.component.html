@@ -3,8 +3,8 @@
     <div class="hero-top">
       <div class="hero-copy">
         <span class="eyebrow"><i></i> Pine Drink</span>
-        <h1>Chọn món nhanh, uống thật fresh.</h1>
-        <p>Menu đang bán được cập nhật trực tiếp từ hệ thống.</p>
+        <h1>Chọn món nhanh, thưởng thức đồ uống tươi ngon.</h1>
+        <p>Thực đơn đang bán được cập nhật trực tiếp từ hệ thống.</p>
       </div>
 
       <div class="hero-card" *ngIf="selectedBranch">
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <div class="menu-toolbar" aria-label="Tìm kiếm và lọc menu">
+    <div class="menu-toolbar" aria-label="Tìm kiếm và lọc thực đơn">
       <label class="search-box" for="client-menu-search-input">
         <span class="material-symbols-outlined">search</span>
         <input
@@ -38,7 +38,7 @@
 
       <div class="sort-buttons" aria-label="Sắp xếp sản phẩm">
         <button id="sort-best-seller-button" type="button" [class.active]="sortBy === 'best-seller'" (click)="selectSort('best-seller')">
-          Best seller
+          Bán chạy
         </button>
         <button id="sort-newest-button" type="button" [class.active]="sortBy === 'newest'" (click)="selectSort('newest')">
           Mới nhất
@@ -69,7 +69,7 @@
     <button type="button" (click)="loadData()">Thử lại</button>
   </div>
 
-  <section class="loading-grid" *ngIf="loading" aria-label="Đang tải menu">
+  <section class="loading-grid" *ngIf="loading" aria-label="Đang tải thực đơn">
     <article *ngFor="let item of [1, 2, 3, 4, 5, 6]" class="skeleton-card"></article>
   </section>
 
@@ -179,7 +179,7 @@
         <div class="empty-state">
           <span class="material-symbols-outlined">search_off</span>
           <h3>Chưa có sản phẩm phù hợp</h3>
-          <p>Thử đổi danh mục, từ khóa hoặc kiểm tra sản phẩm đang bật trong trang admin.</p>
+          <p>Thử đổi danh mục, từ khóa hoặc kiểm tra sản phẩm đang bật trong trang quản trị.</p>
         </div>
       </ng-template>
     </section>
@@ -195,7 +195,7 @@
           <img [src]="item.productImageUrl || 'assets/images/product-placeholder.svg'" [alt]="item.productName" />
           <div class="cart-item-info">
             <h4>{{ item.productName }}</h4>
-            <p>{{ item.variantName || 'Size mặc định' }} • Đá {{ item.iceLevel || 'NORMAL' }} • Đường {{ item.sugarLevel || 'NORMAL' }}</p>
+            <p>{{ item.variantName || 'Kích cỡ mặc định' }} • Đá {{ item.iceLevel ?? 'Vừa' }} • Đường {{ item.sugarLevel ?? 'Vừa' }}</p>
             <div class="cart-item-footer">
               <span class="quantity">x{{ item.quantity }}</span>
               <strong>{{ formatPrice(item.totalPrice || (item.unitPrice * item.quantity)) }}</strong>

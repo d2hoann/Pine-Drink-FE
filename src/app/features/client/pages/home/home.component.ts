@@ -148,7 +148,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   getProductBadge(product: ProductSummary): string {
-    if (this.isFlagEnabled(product.bestSeller)) { return 'Best seller'; }
+    if (this.isFlagEnabled(product.bestSeller)) { return 'Bán chạy'; }
     if (this.isFlagEnabled(product.featured)) { return 'Nổi bật'; }
     return '';
   }

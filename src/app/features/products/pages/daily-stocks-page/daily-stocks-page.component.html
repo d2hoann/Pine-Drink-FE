@@ -2,7 +2,7 @@
   <header class="hero-card">
     <div>
       <h1>Tồn kho bán trong ngày</h1>
-      <p>Set quota theo chi nhánh + biến thể + ngày, theo dõi sold/reserved/available và log thao tác.</p>
+      <p>Đặt số lượng bán theo chi nhánh, biến thể và ngày. Theo dõi số lượng đã bán, đang giữ và còn bán.</p>
     </div>
     <div class="hero-actions">
       <button id="refresh-daily-stock-btn" type="button" class="btn ghost" (click)="refresh()"
@@ -11,11 +11,11 @@
       </button>
       <button id="copy-daily-stock-btn" type="button" class="btn soft" (click)="openCopyPanel()"
         [disabled]="!selectedBranchId">
-        <span class="material-symbols-outlined">content_copy</span>Copy quota
+        <span class="material-symbols-outlined">content_copy</span>Sao chép hạn mức
       </button>
       <button id="open-daily-stock-drawer-btn" type="button" class="btn primary" (click)="openCreateDrawer()"
         [disabled]="!selectedBranchId">
-        <span class="material-symbols-outlined">add</span>Set quota
+        <span class="material-symbols-outlined">add</span>Đặt hạn mức
       </button>
     </div>
   </header>
@@ -27,12 +27,11 @@
 
   <section class="control-card">
     <label>Chi nhánh
-      <select id="daily-stock-branch-select" [ngModel]="selectedBranchId" (ngModelChange)="onBranchChange($event)"
-        [disabled]="bootLoading || !branches.length">
-        <option value="" disabled>Chọn chi nhánh</option>
-        <option *ngFor="let branch of branches; trackBy: trackBranch" [ngValue]="branch.id">{{ branch.name }} · {{
-          branch.code || branch.status }}</option>
-      </select>
+      <app-combobox inputId="daily-stock-branch-select" [ngModel]="selectedBranchId" (ngModelChange)="onBranchChange($event)"
+        [disabled]="bootLoading || !branches.length" label="Chi nhánh" placeholder="Chi nhánh">
+        <ng-template comboOption value="" [disabled]="true" label="Chọn chi nhánh"></ng-template>
+        <ng-template comboOption *ngFor="let branch of branches; trackBy: trackBranch" [value]="branch.id" label="{{ branch.name }} · {{ branch.code || (branch.status | businessLabel:'branch') }}"></ng-template>
+      </app-combobox>
     </label>
     <label>Ngày bán
       <input id="daily-stock-date-input" type="date" [ngModel]="selectedDate" (ngModelChange)="onDateChange($event)" />
@@ -44,27 +43,27 @@
   </section>
 
   <section class="metric-grid">
-    <article><span>Quota ngày</span><strong>{{ totalQuota }}</strong><em>ly có thể bán</em></article>
-    <article><span>Available</span><strong>{{ totalAvailable }}</strong><em>còn bán</em></article>
-    <article><span>Reserved</span><strong>{{ totalReserved }}</strong><em>đang giữ</em></article>
-    <article><span>Sold</span><strong>{{ totalSold }}</strong><em>đã bán</em></article>
+    <article><span>Hạn mức trong ngày</span><strong>{{ totalQuota }}</strong><em>ly có thể bán</em></article>
+    <article><span>Còn bán</span><strong>{{ totalAvailable }}</strong><em>còn bán</em></article>
+    <article><span>Đang giữ</span><strong>{{ totalReserved }}</strong><em>đang giữ</em></article>
+    <article><span>Đã bán</span><strong>{{ totalSold }}</strong><em>đã bán</em></article>
   </section>
 
   <section class="stock-card" [class.is-loading]="loading">
     <div class="card-head">
       <div>
-        <h2>Bảng stock theo biến thể</h2>
-        <p>{{ selectedDate }} · {{ stocks.length }} dòng quota</p>
+        <h2>Tồn kho theo biến thể</h2>
+        <p>{{ selectedDate }} · {{ stocks.length }} biến thể có hạn mức</p>
       </div>
       <span class="loading-pill" *ngIf="loading || bootLoading">Đang tải...</span>
     </div>
 
     <div class="empty-state" *ngIf="!loading && !stocks.length">
       <span class="material-symbols-outlined">inventory_2</span>
-      <h3>Chưa set quota cho ngày này</h3>
-      <p>Set từng biến thể hoặc copy quota từ ngày trước để bắt đầu bán.</p>
+      <h3>Chưa đặt hạn mức bán cho ngày này</h3>
+      <p>Đặt hạn mức cho từng biến thể hoặc sao chép từ ngày trước để bắt đầu bán.</p>
       <button type="button" class="btn primary" (click)="openCreateDrawer()"><span
-          class="material-symbols-outlined">add</span>Set quota đầu tiên</button>
+          class="material-symbols-outlined">add</span>Đặt hạn mức đầu tiên</button>
     </div>
 
     <div class="table-wrap" *ngIf="stocks.length">
@@ -72,10 +71,10 @@
         <thead>
           <tr>
             <th>Biến thể</th>
-            <th>Quota</th>
-            <th>Sold</th>
-            <th>Reserved</th>
-            <th>Available</th>
+            <th>Hạn mức</th>
+            <th>Đã bán</th>
+            <th>Đang giữ</th>
+            <th>Còn bán</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
           </tr>
@@ -97,17 +96,17 @@
                     stock.productName || stock.variantId }}</small></div>
               </div>
             </td>
-            <td data-label="Quota"><strong>{{ stock.dailyQuantity }}</strong></td>
-            <td data-label="Sold">{{ stock.soldQuantity }}</td>
-            <td data-label="Reserved">{{ stock.reservedQuantity }}</td>
-            <td data-label="Available"><span class="available-pill" [class.empty]="stock.availableQuantity <= 0"
+            <td data-label="Hạn mức"><strong>{{ stock.dailyQuantity }}</strong></td>
+            <td data-label="Đã bán">{{ stock.soldQuantity }}</td>
+            <td data-label="Đang giữ">{{ stock.reservedQuantity }}</td>
+            <td data-label="Còn bán"><span class="available-pill" [class.empty]="stock.availableQuantity <= 0"
                 [class.low]="stock.availableQuantity > 0 && stock.availableQuantity <= 5">{{ stock.availableQuantity
                 }}</span></td>
             <td data-label="Trạng thái"><span class="status-badge" [class.empty]="stock.availableQuantity <= 0"
                 [class.low]="stock.availableQuantity > 0 && stock.availableQuantity <= 5">{{ stockStatusLabel(stock)
                 }}</span></td>
             <td data-label="Thao tác"><button id="edit-daily-stock-{{ stock.id }}" type="button" class="action-btn"
-                (click)="$event.stopPropagation(); openEditDrawer(stock)">Sửa / Log</button></td>
+                (click)="$event.stopPropagation(); openEditDrawer(stock)">Sửa / Xem lịch sử</button></td>
           </tr>
         </tbody>
       </table>
@@ -118,69 +117,58 @@
 <div class="drawer-backdrop" *ngIf="drawerOpen || copyOpen" (click)="drawerOpen ? closeDrawer() : closeCopyPanel()">
 </div>
 
-<aside class="stock-drawer" [class.open]="drawerOpen" aria-label="Daily stock quota form">
+<aside class="stock-drawer" [class.open]="drawerOpen" aria-label="Biểu mẫu đặt hạn mức bán theo ngày">
   <form [formGroup]="quotaForm" (ngSubmit)="saveQuota()">
     <div class="drawer-head">
       <div>
-        <h2>{{ selectedStock ? 'Cập nhật quota' : 'Set quota ngày' }}</h2>
+        <h2>{{ selectedStock ? 'Cập nhật hạn mức' : 'Đặt hạn mức bán trong ngày' }}</h2>
       </div><button type="button" class="icon-btn" (click)="closeDrawer()"><span
           class="material-symbols-outlined">close</span></button>
     </div>
 
-    <label>Tìm kiếm biến thể
-      <input type="text" placeholder="Tìm theo tên sản phẩm hoặc biến thể..." [(ngModel)]="variantSearchTerm"
-        [ngModelOptions]="{standalone: true}" [disabled]="!!selectedStock || variantsLoading" />
-      <small *ngIf="variantsLoading">Đang tải danh sách biến thể...</small>
-      <small *ngIf="!variantsLoading && variants.length > 0">{{ filteredVariants.length }} / {{ variants.length }} biến
-        thể</small>
-    </label>
-
     <label>Biến thể
-      <select id="daily-stock-variant-select" formControlName="variantId"
-        [disabled]="!!selectedStock || variantsLoading">
-        <option value="" disabled>{{ variantsLoading ? 'Đang tải...' : 'Chọn biến thể' }}</option>
-        <option *ngFor="let variant of filteredVariants; trackBy: trackVariant" [ngValue]="variant.id">{{
-          variant.productName }} · {{ variant.variantName }}</option>
-        <option *ngIf="!variantsLoading && variantSearchTerm && filteredVariants.length === 0" disabled>Không tìm thấy
-          biến thể phù hợp</option>
-      </select>
+      <app-combobox inputId="daily-stock-variant-select" formControlName="variantId"
+        [interactionDisabled]="!!selectedStock || variantsLoading" label="Biến thể" placeholder="Biến thể">
+        <ng-template comboOption value="" [disabled]="true" label="{{ variantsLoading ? 'Đang tải...' : 'Chọn biến thể' }}"></ng-template>
+        <ng-template comboOption *ngFor="let variant of variants; trackBy: trackVariant" [value]="variant.id" label="{{ variant.productName }} · {{ variant.variantName }}"></ng-template>
+      </app-combobox>
     </label>
-    <label>Daily quantity
+    <label>Hạn mức bán trong ngày
       <input id="daily-stock-quantity-input" type="number" min="0" formControlName="dailyQuantity" />
       <small *ngIf="quotaForm.controls.dailyQuantity.invalid && quotaForm.controls.dailyQuantity.touched">Số lượng phải
-        >= 0 và không nhỏ hơn sold + reserved.</small>
+        Nhập số lượng từ 0 trở lên và đủ cho số đã bán và đang giữ.</small>
     </label>
     <label>Lý do
       <textarea id="daily-stock-reason-input" rows="3" formControlName="reason"></textarea>
     </label>
     <section class="log-panel" *ngIf="selectedStock">
-      <h3>Log gần nhất</h3>
-      <p *ngIf="logLoading">Đang tải log...</p>
-      <div class="log-item" *ngFor="let log of logs; trackBy: trackLog"><strong>{{ log.actionType }}</strong><span>{{
-          log.quantity }} · {{ log.reason || 'Không có lý do' }}</span><small>{{ log.createdAt }}</small></div>
+      <h3>Lịch sử thay đổi gần nhất</h3>
+      <p *ngIf="logLoading">Đang tải lịch sử thay đổi...</p>
+      <div class="log-item" *ngFor="let log of logs; trackBy: trackLog"><strong>{{ log.actionType | businessLabel:'stock' }}</strong><span>{{
+          log.quantity }} · {{ stockLogReason(log.reason) }}</span><small>{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</small></div>
     </section>
     <div class="drawer-actions"><button type="button" class="btn ghost" (click)="closeDrawer()">Hủy</button><button
         id="save-daily-stock-btn" type="submit" class="btn primary" [disabled]="saving"><span
-          class="material-symbols-outlined">save</span>{{ saving ? 'Đang lưu...' : 'Lưu quota' }}</button></div>
+          class="material-symbols-outlined">save</span>{{ saving ? 'Đang lưu...' : 'Lưu hạn mức' }}</button></div>
   </form>
 </aside>
 
-<aside class="stock-drawer copy" [class.open]="copyOpen" aria-label="Copy daily stock quota">
+<aside class="stock-drawer copy" [class.open]="copyOpen" aria-label="Sao chép hạn mức bán theo ngày">
   <form [formGroup]="copyForm" (ngSubmit)="copyQuota()">
     <div class="drawer-head">
       <div>
-        <h2>Copy từ lịch sử</h2>
+        <h2>Sao chép từ ngày trước</h2>
       </div><button type="button" class="icon-btn" (click)="closeCopyPanel()"><span
           class="material-symbols-outlined">close</span></button>
     </div>
     <label>Ngày nguồn<input id="copy-source-date-input" type="date" formControlName="sourceDate" /></label>
-    <label class="check-row"><input id="copy-overwrite-input" type="checkbox" formControlName="overwrite" />Overwrite
-      ngày hiện tại nếu đã có quota</label>
+    <label class="check-row"><input id="copy-overwrite-input" type="checkbox" formControlName="overwrite" />Ghi đè
+      ngày hiện tại nếu đã đặt hạn mức</label>
     <label>Lý do<textarea id="copy-reason-input" rows="3" formControlName="reason"></textarea></label>
-    <div class="copy-note"><span class="material-symbols-outlined">info</span>Chỉ copy dailyQuantity. Sold/reserved ngày
+    <div class="copy-note"><span class="material-symbols-outlined">info</span>Chỉ sao chép hạn mức bán. Số lượng đã bán và đang giữ của ngày
       mới luôn bắt đầu từ 0.</div>
     <div class="drawer-actions"><button type="button" class="btn ghost" (click)="closeCopyPanel()">Hủy</button><button
         id="submit-copy-quota-btn" type="submit" class="btn primary" [disabled]="saving"><span
-          class="material-symbols-outlined">content_copy</span>Copy quota</button></div>
+          class="material-symbols-outlined">content_copy</span>Sao chép hạn mức</button></div>
   </form>
 </aside>

@@ -1,0 +1,31 @@
+<div class="combo-field" [class.is-disabled]="isDisabled">
+  <input #field type="text" role="combobox" autocomplete="off"
+    [id]="inputId" [value]="open ? query : displayValue" [disabled]="isDisabled"
+    [attr.aria-label]="label" [attr.aria-required]="required === '' || required"
+    [attr.aria-expanded]="open" [attr.aria-controls]="listId" [attr.aria-activedescendant]="activeId"
+    aria-autocomplete="list" aria-haspopup="listbox"
+    [placeholder]="open ? 'Nhập để tìm…' : placeholder"
+    (focus)="selectText()" (click)="begin()" (input)="search($event)" (keydown)="onKeydown($event)" (blur)="onBlur()" />
+  <button type="button" tabindex="-1" [disabled]="isDisabled"
+    [attr.aria-label]="open ? 'Thu danh sách' : 'Mở danh sách'"
+    (mousedown)="$event.preventDefault()" (click)="toggle()">
+    <span class="material-symbols-outlined" aria-hidden="true">{{ open ? 'expand_less' : 'expand_more' }}</span>
+  </button>
+</div>
+
+<div #popup popover="manual" class="combo-popup" hidden>
+  <div [id]="listId" role="listbox" [attr.aria-label]="label" [attr.aria-multiselectable]="multiple || null">
+    <ng-container *ngIf="open && results as matches">
+      <div *ngFor="let option of matches; index as index"
+        [id]="optionId(index)" role="option" class="combo-option"
+        [class.is-highlighted]="option === highlighted"
+        [attr.aria-selected]="isSelected(option)" [attr.aria-disabled]="option.disabled || null"
+        (mousedown)="$event.preventDefault()" (click)="select(option)">
+        <span>{{ option.label }}</span>
+        <span *ngIf="isSelected(option)" class="material-symbols-outlined" aria-hidden="true">check</span>
+      </div>
+      <p *ngIf="!matches.length" role="status">{{ query ? 'Không tìm thấy kết quả' : 'Chưa có lựa chọn' }}</p>
+    </ng-container>
+  </div>
+</div>
+<ng-content></ng-content>

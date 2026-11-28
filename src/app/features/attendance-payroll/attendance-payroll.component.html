@@ -1,0 +1,665 @@
+<section class="attendance-page">
+  <header class="workspace-header" [class.settings-header]="page === 'settings'">
+    <div class="page-heading">
+      <div class="page-title">
+        <h1>{{ title }}</h1>
+        <p *ngIf="page === 'settings'" class="muted">Cấu hình áp dụng theo chi nhánh.</p>
+        <div class="period" *ngIf="view && page !== 'settings'">
+          <span class="status" [class.done]="view.period?.status === 'CLOSED'">
+            {{ !view.period ? 'Chưa mở kỳ' : view.period.status === 'CLOSED' ? 'Đã chốt công' : 'Kỳ công đang mở' }}
+          </span>
+          <small *ngIf="view.period?.closedAt as closedAt">
+            {{ view.period?.closedBy }} · {{ (closedAt + 'Z') | date:'dd/MM/yyyy HH:mm' }}
+          </small>
+          <button *ngIf="!view.period && page !== 'payroll' && canEditAttendance" type="button" class="primary"
+            [disabled]="busy" (click)="openPeriod()">Mở kỳ công</button>
+        </div>
+      </div>
+      <div class="context" *ngIf="branches.length">
+        <label>{{ page === 'settings' ? 'Chi nhánh áp dụng' : 'Chi nhánh' }}
+          <app-combobox [(ngModel)]="branchId" (ngModelChange)="changeContext()" [disabled]="busy" label="Chi nhánh" placeholder="Chi nhánh">
+            <ng-template comboOption *ngFor="let item of branches" [value]="item.id" label="{{ item.name }}" [keywords]="item.code"></ng-template>
+          </app-combobox>
+        </label>
+        <label *ngIf="page !== 'settings'">Kỳ công
+          <input type="month" [(ngModel)]="month" (ngModelChange)="changeContext()" [disabled]="busy"
+            min="1900-01" max="9999-12" required />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <div class="feedback error" *ngIf="error && !activePanel && !activeSettingsEditor" role="alert">{{ error }}</div>
+  <section *ngIf="!busy && !branches.length && !error" class="panel">
+    <h2>{{ noBranches ? 'Pine Drink chưa có chi nhánh' : 'Chưa có chi nhánh được cấp quyền' }}</h2>
+    <p class="muted" *ngIf="noBranches">
+      {{ canCreateBranch
+        ? 'Tạo chi nhánh đầu tiên để thiết lập nhân viên, ca làm và mở kỳ công.'
+        : 'Quản trị viên cần tạo chi nhánh trước khi mở kỳ công.' }}
+    </p>
+    <p class="muted" *ngIf="!noBranches">Liên hệ quản trị viên để kiểm tra quyền chấm công hoặc lương tại chi nhánh của bạn.</p>
+    <div *ngIf="noBranches && canCreateBranch" class="controls">
+      <a class="create-branch" routerLink="/admin/branches" [queryParams]="{ create: '1' }">Thêm chi nhánh</a>
+    </div>
+  </section>
+  <p *ngIf="branches.length && !month" class="empty">Chọn tháng để xem dữ liệu.</p>
+  <button *ngIf="error && !view && !busy" type="button" (click)="initialize()">Tải lại</button>
+
+  <ng-container *ngIf="view as data">
+    <section *ngIf="page === 'attendance'" class="panel calendar-panel" aria-label="Bảng chấm công">
+      <div class="attendance-mode-picker" role="group" aria-label="Hình thức chấm công">
+        <button type="button" [attr.aria-pressed]="attendanceMode === 'HOUR'" [disabled]="busy"
+          (click)="setAttendanceMode('HOUR')">Theo giờ</button>
+        <button type="button" [attr.aria-pressed]="attendanceMode === 'SESSION'" [disabled]="busy"
+          (click)="setAttendanceMode('SESSION')">Theo buổi</button>
+      </div>
+      <ng-container *ngIf="data.period as period; else noAttendancePeriod">
+      <div class="session-legend" *ngIf="attendanceMode === 'SESSION'">
+        <span *ngFor="let symbol of setup?.symbols" [hidden]="!symbol.active">
+          <strong>{{ symbol.code }}</strong> {{ symbol.name }}
+        </span>
+        <button type="button" [disabled]="busy" (click)="openSettings()">Danh mục ký hiệu</button>
+      </div>
+      <div class="toolbar calendar-toolbar">
+        <div class="controls filters">
+          <label>Nhân viên
+            <app-combobox [ngModel]="employeeFilter" (ngModelChange)="setEmployeeFilter($event)" label="Lọc theo nhân viên" placeholder="Lọc theo nhân viên">
+              <ng-template comboOption value="" label="Tất cả nhân viên"></ng-template>
+              <ng-template comboOption *ngFor="let employee of setup?.employees" [value]="employee.id" label="{{ employee.name }} · {{ employee.externalCode }}"></ng-template>
+            </app-combobox>
+          </label>
+          <label>Ngày làm
+            <input type="date" [(ngModel)]="dateFilter" (ngModelChange)="tablePage = 0" [min]="month + '-01'" [max]="monthEnd" />
+          </label>
+          <button *ngIf="dateFilter || employeeFilter" type="button" (click)="clearFilters()">Xóa bộ lọc</button>
+        </div>
+        <div class="controls" *ngIf="canEditAttendance && period.status === 'OPEN'">
+          <button type="button" aria-haspopup="dialog" [disabled]="busy" (click)="openImport()">
+            <span class="material-symbols-outlined" aria-hidden="true">upload_file</span> Nhập Excel
+          </button>
+          <button type="button" class="primary" aria-haspopup="dialog" [disabled]="busy" (click)="newEntry()">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span> Thêm ca
+          </button>
+        </div>
+      </div>
+
+      <div class="calendar-scroll" role="region" aria-label="Bảng chấm công theo ngày" tabindex="0"
+        *ngIf="visibleAttendanceRows.length && visibleDays.length; else noCalendar">
+        <table class="attendance-calendar" [attr.aria-label]="'Bảng chấm công ' +
+          (attendanceMode === 'SESSION' ? 'theo buổi' : 'theo giờ') + ' tháng ' + month">
+          <thead>
+            <tr>
+              <th class="employee-column" scope="col">Nhân viên</th>
+              <th class="calendar-date" scope="col" *ngFor="let day of visibleDays" [class.weekend]="day.weekend">
+                {{ day.number }}<small>{{ day.weekday }}</small>
+              </th>
+              <th scope="col">{{ attendanceMode === 'SESSION' ? 'Buổi đã ghi' : 'Tổng giờ tháng' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of visibleAttendanceRows | slice:tablePageStart:tablePageEnd">
+              <th class="employee-column" scope="row">
+                <strong>{{ row.employee.name }}</strong><small>{{ row.employee.externalCode }}</small>
+              </th>
+              <td *ngFor="let day of visibleDays" class="calendar-date" [class.weekend]="day.weekend">
+                <button *ngIf="row.cells.get(day.date) as cell; else emptyDay" type="button" class="calendar-cell"
+                  [class.worked]="cell.minutes > 0" [class.absent]="cell.minutes === 0"
+                  aria-haspopup="dialog"
+                  [attr.aria-label]="'Xem ' + cell.entries.length + ' ca của ' + row.employee.name + ' ngày '
+                    + day.number + ', ' + (attendanceMode === 'SESSION' ? cell.sessionUnits + ' buổi' : duration(cell.minutes))"
+                  [disabled]="busy" (click)="openAttendanceDay(row.employee.id, day.date)">
+                  <ng-container *ngIf="attendanceMode === 'SESSION'; else hourlyCell">
+                    <strong class="session-code" [title]="cell.entries[0].symbolName || ''">{{ cell.entries[0].symbolCode }}</strong>
+                    <small>{{ cell.entries.length > 1 ? cell.entries.length + ' ca' : (cell.sessionUnits | number:'1.0-2') + ' buổi' }}</small>
+                  </ng-container>
+                  <ng-template #hourlyCell>
+                    <strong>{{ cell.minutes > 0 ? shortDuration(cell.minutes) : 'Vắng' }}</strong>
+                    <small *ngIf="cell.minutes > 0 && cell.absences">{{ cell.absences }} ca vắng</small>
+                    <small *ngIf="!cell.absences && cell.entries.length > 1">{{ cell.entries.length }} ca</small>
+                  </ng-template>
+                </button>
+                <ng-template #emptyDay>
+                  <button *ngIf="canEditAttendance && period.status === 'OPEN'; else noDayEntry"
+                    type="button" class="calendar-cell add-cell" aria-haspopup="dialog"
+                    [attr.aria-label]="'Thêm ca cho ' + row.employee.name + ' ngày ' + day.number"
+                    [disabled]="busy" (click)="newEntry(row.employee.id, day.date)">+</button>
+                  <ng-template #noDayEntry><span class="day-dash">—</span></ng-template>
+                </ng-template>
+              </td>
+              <td class="calendar-total">{{ attendanceMode === 'SESSION'
+                ? (row.sessionUnits | number:'1.0-2') : duration(row.minutes) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-container *ngTemplateOutlet="tablePagination"></ng-container>
+      <ng-template #noCalendar>
+        <p class="empty">{{ setup?.employees?.length ? 'Chưa có nhân viên hoặc ngày phù hợp với bộ lọc.' : 'Thêm nhân viên trong Thiết lập để ghi công.' }}</p>
+      </ng-template>
+
+      <dialog #attendanceDialog class="work-dialog" [class.wide]="activePanel !== 'entry'"
+        [class.session-editor]="activePanel === 'entry' && entryDraft?.mode === 'SESSION'"
+        aria-labelledby="attendance-dialog-heading" (cancel)="cancelPanel($event)">
+        <header class="dialog-header">
+          <h2 id="attendance-dialog-heading" #dialogHeading tabindex="-1" [ngSwitch]="activePanel">
+            <ng-container *ngSwitchCase="'entry'">{{ entryDraft?.id ? 'Sửa ca chấm công' : 'Thêm ca chấm công' }}{{ entryDraft?.mode === 'SESSION' ? ' theo buổi' : '' }}</ng-container>
+            <ng-container *ngSwitchCase="'day'">Chi tiết chấm công</ng-container>
+            <ng-container *ngSwitchCase="'import'">Nhập Excel {{ attendanceMode === 'SESSION' ? 'theo buổi' : 'theo giờ' }}</ng-container>
+          </h2>
+          <button type="button" class="dialog-close" aria-label="Đóng hộp thoại" [disabled]="busy" (click)="closePanel()">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </header>
+        <div class="dialog-body">
+          <div *ngIf="error && activePanel" class="feedback error" role="alert">{{ error }}</div>
+          <ng-container [ngSwitch]="activePanel">
+            <ng-container *ngSwitchCase="'entry'">
+              <form class="entry-form" *ngIf="entryDraft as draft" #entryForm="ngForm" (ngSubmit)="saveEntry()">
+                <div class="form-grid entry-context" [class.session-context]="draft.mode === 'SESSION'">
+                  <label>Nhân viên
+                    <app-combobox name="entryEmployee" [(ngModel)]="draft.employeeId" required label="Nhân viên" placeholder="Nhân viên">
+                      <ng-template comboOption value="" label="Chọn nhân viên"></ng-template>
+                      <ng-template comboOption *ngFor="let employee of setup?.employees" [value]="employee.id" label="{{ employee.name }} · {{ employee.externalCode }}"></ng-template>
+                    </app-combobox>
+                  </label>
+                  <label>Ngày làm
+                    <input type="date" name="entryDate" [(ngModel)]="draft.workDate" [min]="month + '-01'" [max]="monthEnd" required />
+                  </label>
+                </div>
+                <div class="form-grid">
+                  <label>Ca làm
+                    <app-combobox name="entryShift" [(ngModel)]="draft.shiftId" (ngModelChange)="suggestHours()" required label="Ca làm" placeholder="Ca làm">
+                      <ng-template comboOption value="" label="Chọn ca"></ng-template>
+                      <ng-container *ngIf="occupiedShifts as occupied">
+                        <ng-template comboOption *ngFor="let shift of setup?.shifts" [value]="shift.id" [keywords]="shift.code"
+                          [disabled]="occupied.has(shift.id)" label="{{ shift.name }} · {{ shift.startTime | slice:0:5 }}–{{ shift.endTime | slice:0:5 }}{{ occupied.has(shift.id) ? ' · Đã chấm' : '' }}"></ng-template>
+                      </ng-container>
+                    </app-combobox>
+                  </label>
+                  <label *ngIf="draft.mode !== 'SESSION'">Trạng thái
+                    <app-combobox name="entryStatus" [(ngModel)]="draft.status" (ngModelChange)="changeEntryStatus()" label="Trạng thái chấm công" placeholder="Trạng thái chấm công">
+                      <ng-template comboOption value="WORKED" label="Có làm"></ng-template><ng-template comboOption value="ABSENT" label="Vắng"></ng-template>
+                    </app-combobox>
+                  </label>
+                  <ng-container *ngIf="draft.mode !== 'SESSION' && draft.status === 'WORKED'">
+                    <label>Giờ vào <input type="time" name="entryIn" [(ngModel)]="draft.inTime" required /></label>
+                    <label>Giờ ra <input type="time" name="entryOut" [(ngModel)]="draft.outTime" required /></label>
+                    <label>Phút nghỉ
+                      <input type="number" name="entryBreak" [(ngModel)]="draft.breakMinutes" min="0" max="1439" step="1" required />
+                    </label>
+                  </ng-container>
+                </div>
+                <fieldset *ngIf="draft.mode === 'SESSION'" class="symbol-picker">
+                  <legend>Ký hiệu chấm công</legend>
+                  <ng-container *ngIf="selectableSymbols.length; else noSymbols">
+                    <div class="symbol-search">
+                      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                      <input type="search" aria-label="Tìm ký hiệu chấm công" placeholder="Tìm theo mã hoặc tên ký hiệu"
+                        [(ngModel)]="symbolQuery" [ngModelOptions]="{ standalone: true }" (keydown.enter)="$event.preventDefault()" />
+                    </div>
+                    <div class="symbol-table-scroll">
+                      <table class="symbol-table" aria-label="Danh sách ký hiệu chấm công">
+                        <thead>
+                          <tr><th scope="col">Ký hiệu</th><th scope="col">Số buổi</th><th scope="col">Hưởng lương</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let symbol of matchingSymbols" [class.symbol-selected]="symbol.code === draft.symbolCode">
+                            <td>
+                              <label class="symbol-choice">
+                                <input type="radio" name="entrySymbol" [value]="symbol.code"
+                                  [checked]="symbol.code === draft.symbolCode" [disabled]="busy" (change)="draft.symbolCode = symbol.code" />
+                                <strong>{{ symbol.code }}</strong>
+                                <span>{{ symbol.name }}</span>
+                              </label>
+                            </td>
+                            <td>{{ symbol.sessionUnits | number:'1.0-2' }}</td>
+                            <td>{{ symbol.paidPercent }}%</td>
+                          </tr>
+                          <tr *ngIf="!matchingSymbols.length">
+                            <td colspan="3" class="muted" role="status">Không tìm thấy ký hiệu phù hợp.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="symbol-summary" aria-live="polite">
+                      <ng-container *ngIf="selectedSymbol as symbol; else chooseSymbol">
+                        <strong>{{ symbol.code }} · {{ symbol.name }}</strong>
+                        <span>{{ symbol.worked ? 'Có làm' : 'Nghỉ / vắng' }} · {{ symbol.sessionUnits | number:'1.0-2' }} buổi · Hưởng {{ symbol.paidPercent }}% thời lượng quy đổi</span>
+                      </ng-container>
+                      <ng-template #chooseSymbol><span>Chọn một ký hiệu để ghi cho ca này.</span></ng-template>
+                    </div>
+                  </ng-container>
+                  <ng-template #noSymbols>
+                    <div class="symbol-empty" role="status">
+                      <strong>Chi nhánh chưa có ký hiệu đang sử dụng.</strong>
+                      <span>Mở thiết lập để thêm hoặc bật lại ký hiệu chấm công.</span>
+                    </div>
+                  </ng-template>
+                </fieldset>
+                <fieldset *ngIf="draft.mode === 'SESSION'" class="symbol-picker overtime-editor">
+                  <legend>Làm thêm giờ</legend>
+                  <ng-container *ngIf="selectedEntryShift && selectedSymbol?.worked; else overtimeHelp">
+                    <div class="form-grid">
+                      <label>Phút làm thêm sau ca
+                        <input type="number" name="entryOvertime" [(ngModel)]="draft.sessionOvertimeMinutes"
+                          min="0" [max]="maxSessionOvertimeMinutes" step="1" placeholder="0" />
+                      </label>
+                      <div class="overtime-rate">
+                        <span>Tỷ lệ tính lương làm thêm</span>
+                        <strong>{{ selectedEntryShift.overtimePercent ?? 150 }}%</strong>
+                      </div>
+                    </div>
+                    <small *ngIf="invalidSessionOvertime" class="problem" role="alert">
+                      Nhập số phút nguyên từ 0 đến {{ maxSessionOvertimeMinutes }} để kết thúc trong cùng ngày.
+                    </small>
+                  </ng-container>
+                  <ng-template #overtimeHelp><p class="muted">Chọn ca và ký hiệu có làm để ghi thời gian làm thêm.</p></ng-template>
+                </fieldset>
+                <label *ngIf="draft.id">Lý do sửa
+                  <input name="entryReason" [(ngModel)]="draft.reason" maxlength="255" required />
+                </label>
+                <div class="dialog-actions">
+                  <button type="button" class="setup-link" [disabled]="busy" (click)="openSettings()">Mở thiết lập</button>
+                  <button type="button" [disabled]="busy" (click)="finishEntry()">Hủy</button>
+                  <button type="submit" class="primary"
+                    [disabled]="entryForm.invalid || busy || (draft.mode === 'SESSION' && !selectedSymbol) || invalidSessionOvertime">Lưu ca</button>
+                </div>
+              </form>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'day'">
+              <section *ngIf="selectedDay as day" class="day-details">
+                <p class="muted"><strong>{{ employeeName(day.employeeId) }}</strong> · {{ day.date | date:'dd/MM/yyyy' }}</p>
+                <div class="table-scroll" *ngIf="selectedDayEntries.length; else noDayDetails">
+                  <table>
+                    <thead><tr><th>Ca</th>
+                      <ng-container *ngIf="attendanceMode === 'SESSION'; else hourDetailHead">
+                        <th>Ký hiệu</th><th>Số buổi</th><th>Hưởng lương</th><th>Làm thêm</th>
+                      </ng-container>
+                      <ng-template #hourDetailHead>
+                        <th>Vào – ra</th><th>Phút nghỉ</th><th>Giờ công</th><th>Trễ / sớm</th><th>Tăng ca</th>
+                      </ng-template>
+                      <th>Nguồn</th>
+                      <th *ngIf="canEditAttendance && period.status === 'OPEN'">Thao tác</th></tr></thead>
+                    <tbody>
+                      <tr *ngFor="let entry of selectedDayEntries">
+                        <td>{{ entry.shiftName }}</td>
+                        <ng-container *ngIf="attendanceMode === 'SESSION'; else hourDetail">
+                          <td><strong>{{ entry.symbolCode }}</strong><small>{{ entry.symbolName }}</small></td>
+                          <td>{{ entry.sessionUnits | number:'1.0-2' }}</td>
+                          <td>{{ duration(entry.paidMinutes ?? 0) }}</td>
+                          <td>{{ duration(entry.overtimeMinutes ?? 0) }}</td>
+                        </ng-container>
+                        <ng-template #hourDetail>
+                          <td>{{ entry.status === 'ABSENT' ? 'Vắng' : (entry.inTime | slice:0:5) + ' – ' + (entry.outTime | slice:0:5) }}</td>
+                          <td>{{ entry.breakMinutes }}</td>
+                          <td>{{ duration(entry.workMinutes) }}</td>
+                          <td>{{ entry.lateMinutes ?? 0 }} / {{ entry.earlyMinutes ?? 0 }} phút</td>
+                          <td>{{ duration(entry.overtimeMinutes ?? 0) }}</td>
+                        </ng-template>
+                        <td>{{ entry.source === 'EXCEL' ? 'Excel' : 'Thủ công' }}
+                          <small *ngIf="entry.reason">Sửa bởi {{ entry.updatedBy }} · {{ entry.reason }}</small>
+                        </td>
+                        <td *ngIf="canEditAttendance && period.status === 'OPEN'">
+                          <button type="button" [disabled]="busy" (click)="editEntry(entry)">Sửa</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <ng-template #noDayDetails><p class="empty">Ngày này chưa có ca chấm công.</p></ng-template>
+                <div class="dialog-actions" *ngIf="canEditAttendance && period.status === 'OPEN'">
+                  <button type="button" class="primary" [disabled]="busy" (click)="newEntry(day.employeeId, day.date)">Thêm ca trong ngày</button>
+                </div>
+              </section>
+            </ng-container>
+
+            <section *ngSwitchCase="'import'" class="import-panel">
+              <p class="muted">Mỗi dòng trong mẫu Excel (.xlsx) là một ca. {{ attendanceMode === 'SESSION'
+                ? 'Nhập ký hiệu theo danh mục chi nhánh trong cột symbol_code.'
+                : 'Nhập giờ vào, giờ ra và phút nghỉ cho ca có làm.' }}</p>
+              <p class="muted">Nếu dùng cột <code>branch_code</code>, nhập <strong>{{ branch?.code }}</strong>.</p>
+              <div class="upload-controls">
+                <input #excelFile type="file" accept=".xlsx" hidden [disabled]="busy" (change)="selectFile($event)" />
+                <button type="button" [disabled]="busy" (click)="excelFile.click()">
+                  <span class="material-symbols-outlined" aria-hidden="true">upload_file</span> Chọn tệp Excel
+                </button>
+                <span class="file-name" aria-live="polite">{{ file?.name || 'Chưa chọn tệp' }}</span>
+                <button type="button" [disabled]="busy" (click)="downloadTemplate()">Tải mẫu Excel</button>
+              </div>
+              <div *ngIf="preview as result" class="preview">
+                <p aria-live="polite"><strong>{{ result.saved ? 'Đã nhập' : 'Ca mới' }} {{ result.newCount }}</strong>
+                  · {{ result.duplicateCount }} trùng · {{ result.errorCount }} cần xử lý</p>
+                <div class="table-scroll">
+                  <table>
+                    <thead><tr><th>Dòng</th><th>Mã nhân viên</th><th>Mã ca</th><th>Ngày làm</th>
+                      <th>{{ attendanceMode === 'SESSION' ? 'Ký hiệu' : 'Giờ thực tế' }}</th><th>Kết quả</th></tr></thead>
+                    <tbody>
+                      <tr *ngFor="let row of result.rows">
+                        <td>{{ row.row }}</td><td>{{ row.employeeCode || '—' }}</td><td>{{ row.shiftCode || '—' }}</td>
+                        <td>{{ (row.workDate | date:'dd/MM/yyyy') || '—' }}</td>
+                        <td>{{ attendanceMode === 'SESSION' ? (row.symbolCode || '—')
+                          : ((row.inTime | slice:0:5) || '—') + ' – ' + ((row.outTime | slice:0:5) || '—') }}</td>
+                        <td [class.problem]="row.status === 'ERROR'">
+                          {{ row.message || (result.saved ? 'Đã nhập' : 'Sẵn sàng') }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="dialog-actions">
+                <button type="button" [class.primary]="!preview" [disabled]="!file || busy" (click)="importFile(false)">Xem trước</button>
+                <button *ngIf="preview && file" type="button" class="primary"
+                  [disabled]="preview.errorCount > 0 || busy" (click)="importFile(true)">Xác nhận nhập</button>
+              </div>
+            </section>
+          </ng-container>
+        </div>
+      </dialog>
+      </ng-container>
+      <ng-template #noAttendancePeriod><p class="empty">Mở kỳ công để bắt đầu ghi nhận công của tháng.</p></ng-template>
+    </section>
+
+    <section *ngIf="page === 'summary'" class="panel" aria-label="Tổng hợp công">
+      <div class="toolbar" *ngIf="data.period">
+        <a class="page-action" [routerLink]="pagePath('attendance')" [queryParams]="contextParams">Mở bảng chấm công</a>
+        <div class="controls">
+          <button *ngIf="canEditAttendance && data.period.status === 'OPEN'" type="button" class="primary"
+            [disabled]="busy || !data.summary.length" (click)="closePeriod()">Chốt công</button>
+          <a *ngIf="canViewPayroll && data.period.status === 'CLOSED'" class="page-action"
+            [routerLink]="pagePath('payroll')" [queryParams]="contextParams">Mở bảng lương</a>
+        </div>
+      </div>
+      <div class="table-scroll" *ngIf="data.summary.length; else noSummary">
+        <table>
+          <thead><tr><th>Nhân viên</th><th>Ca làm</th><th>Ca vắng / nghỉ</th><th>Buổi đã ghi</th>
+            <th>Giờ thực tế</th><th>Giờ hưởng lương</th><th>Tăng ca</th><th>Trễ / sớm</th><th>Đối chiếu</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of data.summary | slice:tablePageStart:tablePageEnd">
+              <td><strong>{{ row.employeeName }}</strong><small>{{ row.externalCode }}</small></td>
+              <td>{{ row.workedShifts }}</td><td>{{ row.absentShifts }}</td>
+              <td>{{ (row.sessionUnits ?? 0) | number:'1.0-2' }}</td>
+              <td>{{ duration(row.hourlyMinutes ?? row.workMinutes) }}</td>
+              <td>{{ duration(row.paidMinutes ?? row.workMinutes) }}</td>
+              <td>{{ duration(row.overtimeMinutes ?? 0) }}</td>
+              <td>{{ row.lateMinutes ?? 0 }} / {{ row.earlyMinutes ?? 0 }} phút</td>
+              <td><a class="page-action" [routerLink]="pagePath('attendance')"
+                [queryParams]="{ branchId: branchId, month: month, employeeId: row.employeeId }">Xem các ca</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-container *ngTemplateOutlet="tablePagination"></ng-container>
+      <ng-template #noSummary>
+        <p class="empty">{{ data.period ? 'Chưa có công để tổng hợp.' : 'Mở kỳ công và ghi nhận ca để tổng hợp.' }}</p>
+      </ng-template>
+    </section>
+
+    <section *ngIf="page === 'payroll'" class="panel" aria-label="Bảng lương">
+      <ng-container *ngIf="data.payroll as payroll; else noPayroll">
+        <div class="toolbar">
+          <span class="status" [class.done]="payroll.status === 'CONFIRMED'">
+            {{ payroll.status === 'CONFIRMED' ? 'Đã xác nhận' : 'Bảng lương nháp' }}
+          </span>
+          <button *ngIf="payroll.status === 'DRAFT' && canEditPayroll" type="button" class="primary"
+            [disabled]="busy || allowanceDraft !== null" (click)="confirmPayroll()">Xác nhận bảng lương</button>
+        </div>
+        <p class="muted" *ngIf="payroll.confirmedAt as confirmedAt">{{ payroll.confirmedBy }} · {{ (confirmedAt + 'Z') | date:'dd/MM/yyyy HH:mm' }}</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Nhân viên</th><th>Giờ hưởng lương</th><th>Đơn giá/giờ</th><th>Tiền công thường</th>
+              <th>Tiền tăng ca</th><th>Phụ cấp</th><th>Thành tiền</th>
+              <th *ngIf="canViewAttendance || (canEditPayroll && payroll.status === 'DRAFT')">Thao tác</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let line of payroll.lines | slice:tablePageStart:tablePageEnd">
+                <td><strong>{{ line.employeeName }}</strong><small>{{ line.employeeCode }}</small></td>
+                <td>{{ duration(line.paidMinutes ?? line.workMinutes) }}</td>
+                <td>{{ vnd(line.hourlyRate) }}</td><td>{{ vnd(line.workAmount) }}</td>
+                <td>{{ vnd(line.overtimeAmount ?? 0) }}
+                  <small *ngIf="line.overtimeMinutes">{{ duration(line.overtimeMinutes) }}</small>
+                </td>
+                <td>
+                  <ng-container *ngIf="allowanceDraft as draft; else allowanceValue">
+                    <form *ngIf="draft.lineId === line.id; else allowanceValue" #allowanceForm="ngForm" class="allowance"
+                      (ngSubmit)="saveAllowance()">
+                      <input aria-label="Tiền phụ cấp" type="number" name="allowance" [(ngModel)]="draft.amount"
+                        min="0" max="999999999999" step="1" required />
+                      <div class="controls">
+                        <button type="submit" [disabled]="allowanceForm.invalid || busy">Lưu</button>
+                        <button type="button" [disabled]="busy" (click)="allowanceDraft = null">Hủy</button>
+                      </div>
+                    </form>
+                  </ng-container>
+                  <ng-template #allowanceValue>{{ vnd(line.allowance) }}</ng-template>
+                </td>
+                <td><strong>{{ vnd(line.total) }}</strong></td>
+                <td *ngIf="canViewAttendance || (canEditPayroll && payroll.status === 'DRAFT')">
+                  <div class="controls">
+                    <button *ngIf="canEditPayroll && payroll.status === 'DRAFT'" type="button"
+                      [disabled]="busy || allowanceDraft !== null" (click)="editAllowance(line)">Phụ cấp</button>
+                    <a *ngIf="canViewAttendance" class="page-action" [routerLink]="pagePath('attendance')"
+                      [queryParams]="{ branchId: branchId, month: month, employeeId: line.employeeId }">Xem công</a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="payroll-total">Tổng tiền <strong>{{ vnd(payroll.total) }}</strong></p>
+        <ng-container *ngTemplateOutlet="tablePagination"></ng-container>
+      </ng-container>
+      <ng-template #noPayroll>
+        <p class="empty">{{ data.period?.status === 'CLOSED' ? 'Kỳ công đã chốt và chưa có bảng lương.' : 'Chốt kỳ công trước khi sinh bảng lương.' }}</p>
+        <div class="controls">
+          <button *ngIf="canEditPayroll && data.period?.status === 'CLOSED'" type="button" class="primary"
+            [disabled]="busy" (click)="generate()">Sinh bảng lương</button>
+          <a *ngIf="canViewAttendance && data.period?.status !== 'CLOSED'" class="page-action"
+            [routerLink]="pagePath('summary')" [queryParams]="contextParams">Mở tổng hợp công</a>
+        </div>
+      </ng-template>
+    </section>
+
+    <section class="settings-workspace" *ngIf="page === 'settings' && setup as config">
+      <nav class="settings-nav" aria-label="Danh mục thiết lập">
+        <button *ngFor="let section of settingsSections" type="button" class="settings-nav-item"
+          [attr.aria-pressed]="selectedSettingsSection?.id === section.id" (click)="selectSettingsTab(section.id)">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ section.icon }}</span>
+          <span>{{ section.title }}</span>
+        </button>
+      </nav>
+
+      <section class="settings-directory" *ngIf="selectedSettingsSection as section" aria-labelledby="settings-directory-title">
+        <header class="directory-header">
+          <div>
+            <h2 id="settings-directory-title">{{ section.title }}</h2>
+            <p class="muted">{{ section.description }}</p>
+          </div>
+          <button *ngIf="section.id === 'rates' ? canEditPayroll : canEditAttendance" type="button" class="primary directory-add"
+            [disabled]="busy || (section.id === 'rates' && !config.employees.length)"
+            (click)="newSettingsRecord(section.id)">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>{{ section.action }}
+          </button>
+        </header>
+
+        <div class="settings-table-wrap" [ngSwitch]="section.id">
+          <table *ngSwitchCase="'employees'" class="settings-table" aria-label="Nhân viên và mã chấm công">
+            <thead><tr><th scope="col">Nhân viên</th><th scope="col">Mã chấm công</th><th scope="col" *ngIf="canEditAttendance">Thao tác</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let employee of config.employees | slice:tablePageStart:tablePageEnd">
+                <td><strong>{{ employee.name }}</strong></td><td><span class="settings-code">{{ employee.externalCode }}</span></td>
+                <td *ngIf="canEditAttendance"><button type="button" class="row-edit" [disabled]="busy"
+                  [attr.aria-label]="'Sửa mã chấm công của ' + employee.name" (click)="editEmployee(employee)">Sửa</button></td>
+              </tr>
+              <tr *ngIf="!config.employees.length"><td [attr.colspan]="canEditAttendance ? 3 : 2" class="settings-empty">Chi nhánh chưa có mã chấm công cho nhân viên.</td></tr>
+            </tbody>
+          </table>
+
+          <table *ngSwitchCase="'shifts'" class="settings-table" aria-label="Danh mục ca làm">
+            <thead><tr>
+              <th scope="col">Ca làm</th><th scope="col">Khung giờ</th><th scope="col">Nghỉ mặc định</th>
+              <th scope="col">Dung sai</th><th scope="col">Làm thêm giờ</th><th scope="col" *ngIf="canEditAttendance">Thao tác</th>
+            </tr></thead>
+            <tbody>
+              <tr *ngFor="let shift of config.shifts | slice:tablePageStart:tablePageEnd">
+                <td><strong>{{ shift.name }}</strong><small>Mã {{ shift.code }} · Mã nguồn {{ shift.externalCode }}</small></td>
+                <td class="settings-number">{{ shift.startTime | slice:0:5 }}–{{ shift.endTime | slice:0:5 }}</td>
+                <td>{{ shift.standardBreakMinutes ?? 0 }} phút</td>
+                <td>{{ shift.graceMinutes ?? 0 }} phút</td>
+                <td><strong>{{ shift.overtimePercent ?? 150 }}%</strong>
+                  <small *ngIf="shift.overtimeThresholdMinutes != null; else manualOvertime">Theo giờ tính tự động sau {{ shift.overtimeThresholdMinutes }} phút vượt chuẩn</small>
+                  <ng-template #manualOvertime><small>Nhập trực tiếp khi chấm công theo buổi</small></ng-template>
+                </td>
+                <td *ngIf="canEditAttendance"><button type="button" class="row-edit" [disabled]="busy"
+                  [attr.aria-label]="'Sửa ca ' + shift.name" (click)="editShift(shift)">Sửa</button></td>
+              </tr>
+              <tr *ngIf="!config.shifts.length"><td [attr.colspan]="canEditAttendance ? 6 : 5" class="settings-empty">Chi nhánh chưa có ca làm.</td></tr>
+            </tbody>
+          </table>
+
+          <table *ngSwitchCase="'symbols'" class="settings-table" aria-label="Ký hiệu chấm công theo buổi">
+            <thead><tr>
+              <th scope="col">Mã</th><th scope="col">Diễn giải</th><th scope="col">Số buổi</th>
+              <th scope="col">Hưởng lương</th><th scope="col">Trạng thái</th><th scope="col" *ngIf="canEditAttendance">Thao tác</th>
+            </tr></thead>
+            <tbody>
+              <tr *ngFor="let symbol of config.symbols | slice:tablePageStart:tablePageEnd">
+                <td><span class="settings-code">{{ symbol.code }}</span></td>
+                <td><strong>{{ symbol.name }}</strong><small>{{ symbol.worked ? 'Có làm' : 'Nghỉ / vắng' }}</small></td>
+                <td>{{ symbol.sessionUnits | number:'1.0-2' }}</td><td>{{ symbol.paidPercent }}%</td>
+                <td><span class="symbol-status" [class.symbol-active]="symbol.active">{{ symbol.active ? 'Đang áp dụng' : 'Ngừng áp dụng' }}</span></td>
+                <td *ngIf="canEditAttendance"><button type="button" class="row-edit" [disabled]="busy"
+                  [attr.aria-label]="'Sửa ký hiệu ' + symbol.code" (click)="editSymbol(symbol)">Sửa</button></td>
+              </tr>
+              <tr *ngIf="!config.symbols?.length"><td [attr.colspan]="canEditAttendance ? 6 : 5" class="settings-empty">Chi nhánh chưa có ký hiệu chấm công theo buổi.</td></tr>
+            </tbody>
+          </table>
+
+          <table *ngSwitchCase="'rates'" class="settings-table" aria-label="Đơn giá theo giờ">
+            <thead><tr><th scope="col">Nhân viên</th><th scope="col">Tháng hiệu lực</th><th scope="col">Đơn giá mỗi giờ</th><th scope="col" *ngIf="canEditPayroll">Thao tác</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let rate of config.rates | slice:tablePageStart:tablePageEnd">
+                <td><strong>{{ employeeName(rate.employeeId) }}</strong></td>
+                <td class="settings-number">{{ rate.effectiveMonth | date:'MM/yyyy' }}</td>
+                <td class="settings-number">{{ vnd(rate.hourlyRate) }}</td>
+                <td *ngIf="canEditPayroll"><button type="button" class="row-edit" [disabled]="busy"
+                  [attr.aria-label]="'Sửa đơn giá của ' + employeeName(rate.employeeId)" (click)="editRate(rate)">Sửa</button></td>
+              </tr>
+              <tr *ngIf="!config.rates.length"><td [attr.colspan]="canEditPayroll ? 4 : 3" class="settings-empty">
+                {{ config.employees.length ? 'Chi nhánh chưa có đơn giá theo giờ.' : 'Cần thiết lập mã chấm công cho nhân viên trước khi thêm đơn giá.' }}
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-container *ngTemplateOutlet="tablePagination"></ng-container>
+      </section>
+
+      <dialog #settingsDialog class="work-dialog settings-dialog" aria-labelledby="settings-dialog-title" (cancel)="closeSettingsEditor($event)">
+        <header class="dialog-header">
+          <h2 #settingsDialogHeading id="settings-dialog-title" tabindex="-1">{{ settingsEditorTitle }}</h2>
+          <button type="button" class="dialog-close" aria-label="Đóng hộp thoại" [disabled]="busy" (click)="closeSettingsEditor($event)">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </header>
+        <div class="dialog-body" [ngSwitch]="activeSettingsEditor">
+          <div *ngIf="error && activeSettingsEditor" class="feedback error" role="alert">{{ error }}</div>
+          <form *ngSwitchCase="'employees'" class="settings-form" #employeeForm="ngForm" (ngSubmit)="saveEmployee()">
+            <label>Tài khoản tại chi nhánh
+              <app-combobox name="employeeAccount" [disabled]="editingSettings" [ngModel]="employeeDraft.accountId" (ngModelChange)="selectEmployee($event)" required label="Tài khoản tại chi nhánh" placeholder="Tài khoản tại chi nhánh">
+                <ng-template comboOption value="" label="Chọn tài khoản"></ng-template>
+                <ng-template comboOption *ngFor="let account of config.accounts" [value]="account.id" label="{{ account.name }}"></ng-template>
+              </app-combobox>
+            </label>
+            <p *ngIf="!config.accounts.length" class="muted">Gán tài khoản vào vai trò vận hành tại chi nhánh trong mục Tài khoản.</p>
+            <label>Mã nhân viên trên bảng chấm công <input name="employeeCode" [(ngModel)]="employeeDraft.externalCode" maxlength="50" required /></label>
+            <div class="dialog-actions">
+              <button type="button" (click)="closeSettingsEditor($event)" [disabled]="busy">Hủy</button>
+              <button type="submit" class="primary" [disabled]="employeeForm.invalid || busy">Lưu thay đổi</button>
+            </div>
+          </form>
+          <form *ngSwitchCase="'shifts'" class="settings-form" #shiftForm="ngForm" (ngSubmit)="saveShift()">
+            <div class="form-grid">
+              <label class="settings-form-wide">Tên ca <input name="shiftName" [(ngModel)]="shiftDraft.name" maxlength="100" required /></label>
+              <label>Mã ca <input name="shiftCode" [(ngModel)]="shiftDraft.code" maxlength="50" required /></label>
+              <label>Mã ca trên bảng chấm công <input name="shiftExternal" [(ngModel)]="shiftDraft.externalCode" maxlength="50" required /></label>
+              <label>Bắt đầu <input type="time" name="shiftStart" [(ngModel)]="shiftDraft.startTime" required /></label>
+              <label>Kết thúc <input type="time" name="shiftEnd" [(ngModel)]="shiftDraft.endTime" required /></label>
+              <label>Nghỉ mặc định (phút)
+                <input type="number" name="shiftBreak" [(ngModel)]="shiftDraft.standardBreakMinutes" min="0" max="1439" step="1" required />
+              </label>
+              <label>Dung sai trễ / sớm (phút)
+                <input type="number" name="shiftGrace" [(ngModel)]="shiftDraft.graceMinutes" min="0" max="120" step="1" required />
+              </label>
+            </div>
+            <fieldset class="shift-overtime">
+              <legend>Làm thêm giờ</legend>
+              <label class="check-option"><input type="checkbox" name="shiftOvertime" [(ngModel)]="shiftOvertime" /> Tự tính làm thêm khi chấm công theo giờ</label>
+              <div class="form-grid">
+                <label *ngIf="shiftOvertime">Ngưỡng vượt giờ chuẩn (phút)
+                  <input type="number" name="shiftOvertimeThreshold" [(ngModel)]="shiftDraft.overtimeThresholdMinutes"
+                    min="0" max="480" step="1" required />
+                </label>
+                <label>Tỷ lệ tính lương làm thêm (%)
+                  <input type="number" name="shiftOvertimePay" [(ngModel)]="shiftDraft.overtimePercent" min="100" max="500" step="1" required />
+                </label>
+              </div>
+              <small>Tỷ lệ này dùng cho cả thời gian làm thêm nhập trực tiếp trên bảng theo buổi.</small>
+            </fieldset>
+            <div class="dialog-actions">
+              <button type="button" (click)="closeSettingsEditor($event)" [disabled]="busy">Hủy</button>
+              <button type="submit" class="primary" [disabled]="shiftForm.invalid || busy">Lưu thay đổi</button>
+            </div>
+          </form>
+          <form *ngSwitchCase="'symbols'" class="settings-form" #symbolForm="ngForm" (ngSubmit)="saveSymbol()">
+            <div class="form-grid">
+              <label>Ký hiệu
+                <input name="symbolCode" [(ngModel)]="symbolDraft.code" [readOnly]="editingSymbol" maxlength="20" required />
+              </label>
+              <label>Diễn giải <input name="symbolName" [(ngModel)]="symbolDraft.name" maxlength="100" required /></label>
+              <label>Số công quy đổi
+                <app-combobox name="symbolUnits" [(ngModel)]="symbolDraft.sessionUnits" label="Số công quy đổi" placeholder="Số công quy đổi">
+                  <ng-template comboOption [value]="0.5" label="Nửa buổi"></ng-template>
+                  <ng-template comboOption [value]="1" label="Đủ buổi"></ng-template>
+                </app-combobox>
+              </label>
+              <label>Tỷ lệ hưởng lương (%)
+                <input type="number" name="symbolPay" [(ngModel)]="symbolDraft.paidPercent" min="0" max="100" step="1" required />
+              </label>
+            </div>
+            <div class="controls">
+              <label class="check-option"><input type="checkbox" name="symbolWorked" [(ngModel)]="symbolDraft.worked" /> Tính là ca đã làm</label>
+              <label class="check-option"><input type="checkbox" name="symbolActive" [(ngModel)]="symbolDraft.active" /> Đang áp dụng</label>
+            </div>
+            <div class="dialog-actions">
+              <button type="button" (click)="closeSettingsEditor($event)" [disabled]="busy">Hủy</button>
+              <button type="submit" class="primary" [disabled]="symbolForm.invalid || busy">Lưu thay đổi</button>
+            </div>
+          </form>
+          <form *ngSwitchCase="'rates'" class="settings-form" #rateForm="ngForm" (ngSubmit)="saveRate()">
+            <label>Nhân viên
+              <app-combobox name="rateEmployee" [disabled]="editingSettings" [(ngModel)]="rateDraft.employeeId" required label="Nhân viên áp dụng đơn giá" placeholder="Nhân viên áp dụng đơn giá">
+                <ng-template comboOption value="" label="Chọn nhân viên"></ng-template>
+                <ng-template comboOption *ngFor="let employee of config.employees" [value]="employee.id" label="{{ employee.name }} · {{ employee.externalCode }}"></ng-template>
+              </app-combobox>
+            </label>
+            <label>Tháng hiệu lực <input type="month" name="rateMonth" [readOnly]="editingSettings" [(ngModel)]="rateDraft.month" min="1900-01" max="9999-12" required /></label>
+            <label>Đơn giá mỗi giờ (đồng)
+              <input type="number" name="rateAmount" [(ngModel)]="rateDraft.hourlyRate" min="1" max="999999999999" step="1" required />
+            </label>
+            <div class="dialog-actions">
+              <button type="button" (click)="closeSettingsEditor($event)" [disabled]="busy">Hủy</button>
+              <button type="submit" class="primary" [disabled]="rateForm.invalid || busy">Lưu thay đổi</button>
+            </div>
+          </form>
+        </div>
+      </dialog>
+    </section>
+  </ng-container>
+  <ng-template #tablePagination>
+    <app-admin-pagination *ngIf="tableTotalItems" [page]="tablePage" [totalPages]="tableTotalPages"
+      [totalItems]="tableTotalItems" [pageSize]="tablePageSize" [pageSizeOptions]="tablePageSizes"
+      [itemLabel]="page === 'settings' ? 'bản ghi' : 'nhân viên'" [disabled]="busy || allowanceDraft !== null"
+      (pageChange)="tablePage = $event" (pageSizeChange)="changeTablePageSize($event)">
+    </app-admin-pagination>
+  </ng-template>
+</section>

@@ -1,9 +1,9 @@
 <section class="variants-page">
   <header class="page-header">
     <div>
-      <span class="eyebrow">Product variants</span>
+      <span class="eyebrow">Biến thể sản phẩm</span>
       <h1>Biến thể sản phẩm</h1>
-      <p>Quản lý size, giá cộng thêm và trạng thái hiển thị theo từng sản phẩm.</p>
+      <p>Quản lý kích cỡ, giá cộng thêm và trạng thái hiển thị theo từng sản phẩm.</p>
     </div>
     <div class="header-actions">
       <button id="refresh-variants-btn" type="button" class="btn ghost" (click)="refresh()" [disabled]="loading || productLoading">
@@ -12,7 +12,7 @@
       </button>
       <button id="create-default-sizes-btn" type="button" class="btn soft" (click)="createDefaultSizeSet()" [disabled]="!selectedProductId || saving || loading">
         <span class="material-symbols-outlined">auto_awesome</span>
-        Tạo size mẫu M/L/XL
+        Tạo các kích cỡ M, L và XL
       </button>
       <button id="open-create-variant-btn" type="button" class="btn primary" (click)="openCreateDrawer()" [disabled]="!selectedProductId">
         <span class="material-symbols-outlined">add</span>
@@ -29,12 +29,10 @@
   <section class="product-panel">
     <label class="product-picker">
       <span>Sản phẩm</span>
-      <select id="variant-product-select" [ngModel]="selectedProductId" (ngModelChange)="onProductChange($event)" [disabled]="productLoading || !products.length">
-        <option value="" disabled>{{ productLoading ? 'Đang tải sản phẩm...' : 'Chọn sản phẩm' }}</option>
-        <option *ngFor="let product of products; trackBy: trackProduct" [ngValue]="product.id">
-          {{ product.name }} · {{ product.code }}
-        </option>
-      </select>
+      <app-combobox inputId="variant-product-select" [ngModel]="selectedProductId" (ngModelChange)="onProductChange($event)" [disabled]="productLoading || !products.length" label="Sản phẩm" placeholder="Sản phẩm">
+        <ng-template comboOption value="" [disabled]="true" label="{{ productLoading ? 'Đang tải sản phẩm...' : 'Chọn sản phẩm' }}"></ng-template>
+        <ng-template comboOption *ngFor="let product of products; trackBy: trackProduct" [value]="product.id" label="{{ product.name }} · {{ product.code }}"></ng-template>
+      </app-combobox>
     </label>
 
     <div class="selected-product" *ngIf="selectedProduct as product">
@@ -77,7 +75,7 @@
     <div class="compact-empty" *ngIf="!loading && selectedProductId && !variants.length && products.length">
       <span class="material-symbols-outlined">tune</span>
       <h3>Chưa có biến thể</h3>
-      <p>Thêm size hoặc biến thể để khách hàng lựa chọn khi đặt món.</p>
+      <p>Thêm kích cỡ hoặc biến thể để khách hàng lựa chọn khi đặt món.</p>
       <div>
         <button type="button" class="btn primary" (click)="openCreateDrawer()">
           <span class="material-symbols-outlined">add</span>
@@ -85,7 +83,7 @@
         </button>
         <button type="button" class="btn soft" (click)="createDefaultSizeSet()" [disabled]="saving">
           <span class="material-symbols-outlined">auto_awesome</span>
-          Tạo size mẫu M/L/XL
+          Tạo các kích cỡ M, L và XL
         </button>
       </div>
     </div>
@@ -155,7 +153,7 @@
 </section>
 
 <div class="drawer-backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
-<aside class="variant-drawer" [class.open]="drawerOpen" aria-label="Form biến thể">
+<aside class="variant-drawer" [class.open]="drawerOpen" aria-label="Biểu mẫu biến thể">
   <form [formGroup]="form" (ngSubmit)="saveVariant()">
     <div class="drawer-head">
       <div>
@@ -168,11 +166,11 @@
     </div>
 
     <label>Tên biến thể
-      <input id="variant-name-input" type="text" formControlName="variantName" placeholder="Ví dụ: Size L" />
+      <input id="variant-name-input" type="text" formControlName="variantName" placeholder="Ví dụ: Kích cỡ L" />
       <small *ngIf="form.controls.variantName.touched && form.controls.variantName.invalid">Tên biến thể bắt buộc, tối đa 100 ký tự.</small>
     </label>
 
-    <label>Nhãn size
+    <label>Nhãn kích cỡ
       <input id="variant-size-input" type="text" formControlName="sizeLabel" placeholder="M / L / XL" />
     </label>
 

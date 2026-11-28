@@ -81,7 +81,7 @@ export class ChatRealtimeService implements OnDestroy {
   connect(roomId?: string, branchId?: string): void {
     const token = this.tokenService.getAccessToken();
     if (!token) {
-      this.errorsSubject.next('Missing access token. Login trước bro.');
+      this.errorsSubject.next('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
       return;
     }
 
@@ -202,7 +202,7 @@ export class ChatRealtimeService implements OnDestroy {
 
   sendMessage(request: SendChatMessageRequest): void {
     if (!this.client?.connected) {
-      this.errorsSubject.next('Realtime chưa connect. Đợi vài giây rồi gửi lại bro.');
+      this.errorsSubject.next('Chưa kết nối được với hệ thống trò chuyện. Vui lòng đợi vài giây rồi gửi lại.');
       return;
     }
 
@@ -255,7 +255,7 @@ export class ChatRealtimeService implements OnDestroy {
           this.roomsSubject.next(payload);
         }
       } catch {
-        this.errorsSubject.next('Không parse được realtime payload');
+        this.errorsSubject.next('Không đọc được tin nhắn nhận từ hệ thống.');
       }
     });
   }

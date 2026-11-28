@@ -1,22 +1,24 @@
 <div class="admin-shell" [class.sidebar-open]="sidebarOpen" [class.sidebar-collapsed]="sidebarCollapsed" [class.delivery-mode]="isDeliveryOnly">
-  <aside class="admin-sidebar">
-    <button type="button" class="sidebar-toggle" [attr.aria-label]="sidebarCollapsed ? 'Hiện sidebar' : 'Ẩn sidebar'"
+  <aside id="admin-sidebar" class="admin-sidebar">
+    <button type="button" class="sidebar-toggle"
+      [attr.aria-label]="sidebarCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'"
       (click)="toggleSidebarCollapse()">
-      <span class="material-symbols-outlined">{{ sidebarCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
+      <span class="material-symbols-outlined" aria-hidden="true">{{ sidebarCollapsed ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
     </button>
 
     <div class="brand-card">
-      <a routerLink="/admin/dashboard" class="brand-logo" aria-label="Pine Drink Admin">
-        <span class="brand-logo__mark">🍍</span>
+      <a routerLink="/admin/dashboard" class="brand-logo"
+        [attr.aria-label]="isDeliveryOnly ? 'Khu vực giao hàng Pine Drink' : 'Trang quản trị Pine Drink'">
+        <span class="brand-logo__mark" aria-hidden="true">🍍</span>
         <span>
-          <strong>{{ isDeliveryOnly ? 'Pine Delivery' : 'Pine Drink' }}</strong>
-          <small>{{ isDeliveryOnly ? 'Courier Workspace' : 'Admin Console' }}</small>
+          <strong>Pine Drink</strong>
+          <small>{{ isDeliveryOnly ? 'Khu vực giao hàng' : 'Trang quản trị' }}</small>
         </span>
       </a>
     </div>
 
     <div *ngIf="isDeliveryOnly" class="delivery-status-card">
-      <span class="material-symbols-outlined">electric_moped</span>
+      <span class="material-symbols-outlined" aria-hidden="true">electric_moped</span>
       <div>
         <strong>Ca giao hàng đang mở</strong>
         <small>Sẵn sàng nhận đơn mới</small>
@@ -24,31 +26,49 @@
       <i></i>
     </div>
 
-    <nav #sidebarScrollContainer class="module-nav" aria-label="Admin modules" (scroll)="onSidebarScroll($event)">
-      <section *ngFor="let section of visibleNavSections" class="module-group">
-        <h3 class="module-group__title">{{ section.title }}</h3>
-        <a *ngFor="let item of section.items" [routerLink]="item.route" class="module-link"
-          [class.is-active]="isActive(item.route)" [class.module-link--compact]="item.compact">
-          <span class="material-symbols-outlined module-link__icon">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
-          <em *ngIf="item.badge">{{ item.badge }}</em>
-        </a>
+    <nav #sidebarScrollContainer class="module-nav" aria-label="Phân hệ quản trị" (scroll)="onSidebarScroll($event)">
+      <section *ngFor="let section of visibleNavSections; trackBy: trackSection" class="module-group">
+        <h3 *ngIf="!section.icon" class="module-group__title">{{ section.title }}</h3>
+        <button *ngIf="section.icon" type="button" class="module-link module-trigger"
+          [attr.aria-label]="section.title" [attr.title]="sidebarCollapsed ? section.title : null"
+          [attr.aria-controls]="'admin-module-' + section.id"
+          [attr.aria-expanded]="!sidebarCollapsed && expandedSectionId === section.id"
+          [class.is-current]="activeSectionId === section.id" (click)="toggleSection(section.id)">
+          <span class="material-symbols-outlined module-link__icon" aria-hidden="true">{{ section.icon }}</span>
+          <span class="module-trigger__label">{{ section.title }}</span>
+          <span class="material-symbols-outlined module-trigger__chevron" aria-hidden="true">chevron_right</span>
+        </button>
+        <div class="module-group__items" [class.module-submenu]="section.icon"
+          [attr.id]="section.icon ? 'admin-module-' + section.id : null"
+          [hidden]="!!section.icon && (sidebarCollapsed || expandedSectionId !== section.id)">
+          <a *ngFor="let item of section.items" [routerLink]="item.route" class="module-link"
+            [queryParams]="item.keepHrContext ? hrContextParams(item.route) : null"
+            [attr.aria-label]="sidebarCollapsed ? item.label : null"
+            [attr.aria-current]="isActive(item.route) ? 'page' : null"
+            [class.is-active]="isActive(item.route)" [class.module-link--compact]="item.compact"
+            (click)="sidebarOpen = false">
+            <span class="material-symbols-outlined module-link__icon" aria-hidden="true">{{ item.icon }}</span>
+            <span>{{ item.label }}</span>
+            <em *ngIf="item.badge">{{ item.badge }}</em>
+          </a>
+        </div>
       </section>
     </nav>
 
     <button type="button" class="logout-button" (click)="logout()">
-      <span class="material-symbols-outlined">logout</span>
+      <span class="material-symbols-outlined" aria-hidden="true">logout</span>
       Đăng xuất
     </button>
   </aside>
 
-  <button type="button" class="sidebar-backdrop" aria-label="Đóng menu" (click)="toggleSidebar()"></button>
+  <button type="button" class="sidebar-backdrop" aria-label="Đóng thanh điều hướng" (click)="toggleSidebar()"></button>
 
   <main class="admin-main">
     <header class="admin-topbar">
       <div class="topbar-left">
-        <button type="button" class="menu-button" aria-label="Mở menu" (click)="toggleSidebar()">
-          <span class="material-symbols-outlined">menu</span>
+        <button type="button" class="menu-button" aria-label="Mở thanh điều hướng" aria-controls="admin-sidebar"
+          [attr.aria-expanded]="sidebarOpen" (click)="toggleSidebar()">
+          <span class="material-symbols-outlined" aria-hidden="true">menu</span>
         </button>
         <div class="search-box">
           <span class="material-symbols-outlined">search</span>
@@ -62,8 +82,8 @@
           <span class="material-symbols-outlined">storefront</span>
           <span>{{ isDeliveryOnly ? 'Bản đồ giao' : 'Xem trang khách' }}</span>
         </a>
-        <span class="live-chip"><i></i> {{ isDeliveryOnly ? 'Online' : 'Live' }}</span>
-        <div *ngIf="isDeliveryOnly" class="delivery-quick-stats" aria-label="Delivery quick stats">
+        <span class="live-chip"><i></i> Trực tuyến</span>
+        <div *ngIf="isDeliveryOnly" class="delivery-quick-stats" aria-label="Thống kê nhanh giao hàng">
           <span><strong>4</strong><small>Đang giao</small></span>
           <span><strong>12</strong><small>Hoàn tất</small></span>
         </div>
@@ -72,11 +92,11 @@
         </button>
         <div class="user-card">
           <div>
-            <strong>{{ currentUser?.fullName || currentUser?.username || 'Admin Pine' }}</strong>
+            <strong>{{ currentUser?.fullName || currentUser?.username || 'Quản trị viên' }}</strong>
             <small>{{ currentUser?.email || 'admin@pinedrink.vn' }}</small>
           </div>
           <span class="avatar">
-            <img *ngIf="getAvatarUrl()" [src]="getAvatarUrl()" alt="Avatar" class="avatar-image" />
+            <img *ngIf="getAvatarUrl()" [src]="getAvatarUrl()" alt="Ảnh đại diện" class="avatar-image" />
             <span *ngIf="!getAvatarUrl()">{{ getUserInitials() }}</span>
           </span>
         </div>

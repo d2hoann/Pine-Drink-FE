@@ -4,7 +4,7 @@
   <nav class="nav-links" [class.is-open]="isMobileNavOpen" aria-label="Điều hướng chính">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
       (click)="closeMobileNav()">Trang chủ</a>
-    <a routerLink="/menu" routerLinkActive="active" (click)="closeMobileNav()">Menu</a>
+    <a routerLink="/menu" routerLinkActive="active" (click)="closeMobileNav()">Thực đơn</a>
     <a routerLink="/promotions" routerLinkActive="active" (click)="closeMobileNav()">Khuyến mãi</a>
     <a routerLink="/track-order" routerLinkActive="active" (click)="closeMobileNav()">Theo dõi đơn</a>
     <a routerLink="/stores" routerLinkActive="active" (click)="closeMobileNav()">Cửa hàng</a>
@@ -23,7 +23,7 @@
         <button class="ghost-button" type="button" (click)="logout()">Đăng xuất</button>
       </ng-container>
       <ng-template #mobileGuestActions>
-        <a routerLink="/auth/login" class="login-button" (click)="closeMobileNav()">Login</a>
+        <a routerLink="/auth/login" class="login-button" (click)="closeMobileNav()">Đăng nhập</a>
       </ng-template>
     </div>
   </nav>
@@ -42,9 +42,9 @@
       <button class="ghost-button" type="button" (click)="logout()">Đăng xuất</button>
     </ng-container>
     <ng-template #guestActions>
-      <a routerLink="/auth/login" class="login-button">Login</a>
+      <a routerLink="/auth/login" class="login-button">Đăng nhập</a>
     </ng-template>
-    <button class="mobile-menu-button" type="button" aria-label="Mở menu" [attr.aria-expanded]="isMobileNavOpen"
+    <button class="mobile-menu-button" type="button" aria-label="Mở thanh điều hướng" [attr.aria-expanded]="isMobileNavOpen"
       (click)="toggleMobileNav()">
       <span class="material-symbols-outlined">{{ isMobileNavOpen ? 'close' : 'menu' }}</span>
     </button>
@@ -65,7 +65,7 @@
         <span class="brand-mark">P</span>
         <strong>Pine Drink</strong>
       </div>
-      <p>Thương hiệu F&B hiện đại cho thế hệ mới. Đem lại trải nghiệm thưởng thức đồ uống nhanh chóng và chất lượng
+      <p>Thương hiệu đồ uống hiện đại cho thế hệ mới. Đem lại trải nghiệm thưởng thức đồ uống nhanh chóng và chất lượng
         nhất.</p>
       <div class="social-links">
         <a href="#" aria-label="Facebook" target="_blank">
@@ -79,7 +79,7 @@
 
     <!-- Navigation Menu -->
     <div class="footer-section">
-      <h4>Menu</h4>
+      <h4>Thực đơn</h4>
       <ul>
         <li><a routerLink="/menu">Thực đơn</a></li>
         <li><a routerLink="/promotions">Khuyến mãi</a></li>
@@ -92,10 +92,10 @@
     <div class="footer-section">
       <h4>Về chúng tôi</h4>
       <ul>
-        <li><a href="#">About Us</a></li>
-        <li><a href="#">Sustainability</a></li>
-        <li><a href="#">Careers</a></li>
-        <li><a href="#">Blog</a></li>
+        <li><a href="#">Giới thiệu</a></li>
+        <li><a href="#">Phát triển bền vững</a></li>
+        <li><a href="#">Tuyển dụng</a></li>
+        <li><a href="#">Tin tức</a></li>
       </ul>
     </div>
 
@@ -103,10 +103,10 @@
     <div class="footer-section">
       <h4>Chính sách</h4>
       <ul>
-        <li><a href="#">Privacy Policy</a></li>
-        <li><a href="#">Terms of Service</a></li>
-        <li><a href="#">Refund Policy</a></li>
-        <li><a href="#">Contact</a></li>
+        <li><a href="#">Chính sách bảo mật</a></li>
+        <li><a href="#">Điều khoản sử dụng</a></li>
+        <li><a href="#">Chính sách hoàn tiền</a></li>
+        <li><a href="#">Liên hệ</a></li>
       </ul>
     </div>
 
@@ -116,7 +116,7 @@
       <ul class="contact-info">
         <li>
           <span class="material-symbols-outlined">call</span>
-          <span>Hotline: 1900 1234</span>
+          <span>Số hỗ trợ: 1900 1234</span>
         </li>
         <li>
           <span class="material-symbols-outlined">mail</span>
@@ -132,7 +132,7 @@
 
   <!-- Copyright -->
   <div class="footer-bottom">
-    <p>© 2024 Pine Drink F&B Startup. All rights reserved.</p>
+    <p>© 2024 Pine Drink. Bảo lưu mọi quyền.</p>
   </div>
 </footer>
 

@@ -4,45 +4,45 @@
     <div class="search-group">
       <div class="search-input">
         <span class="material-symbols-outlined">search</span>
-        <input type="text" formControlName="search" placeholder="Search order ID, customer, phone...">
+        <input type="text" formControlName="search" placeholder="Tìm theo mã đơn, tên khách hoặc số điện thoại...">
       </div>
     </div>
 
     <div class="selectors-group">
-      <select formControlName="status">
-        <option value="">All Status</option>
-        <option value="PENDING">Pending</option>
-        <option value="CONFIRMED">Confirmed</option>
-        <option value="PREPARING">Preparing</option>
-        <option value="READY">Ready</option>
-        <option value="COMPLETED">Completed</option>
-        <option value="CANCELLED">Cancelled</option>
-      </select>
+      <app-combobox formControlName="status" label="Trạng thái đơn hàng" placeholder="Trạng thái đơn hàng">
+        <ng-template comboOption value="" label="Mọi trạng thái"></ng-template>
+        <ng-template comboOption value="PENDING" label="Đang chờ"></ng-template>
+        <ng-template comboOption value="CONFIRMED" label="Đã xác nhận"></ng-template>
+        <ng-template comboOption value="PREPARING" label="Đang pha chế"></ng-template>
+        <ng-template comboOption value="READY" label="Đã chuẩn bị"></ng-template>
+        <ng-template comboOption value="COMPLETED" label="Hoàn tất"></ng-template>
+        <ng-template comboOption value="CANCELLED" label="Đã hủy"></ng-template>
+      </app-combobox>
 
-      <select formControlName="payment">
-        <option value="">All Payment</option>
-        <option value="PAID">Paid</option>
-        <option value="UNPAID">Unpaid</option>
-        <option value="REFUNDED">Refunded</option>
-      </select>
+      <app-combobox formControlName="payment" label="Trạng thái thanh toán" placeholder="Trạng thái thanh toán">
+        <ng-template comboOption value="" label="Mọi trạng thái thanh toán"></ng-template>
+        <ng-template comboOption value="PAID" label="Đã thanh toán"></ng-template>
+        <ng-template comboOption value="UNPAID" label="Chưa thanh toán"></ng-template>
+        <ng-template comboOption value="REFUNDED" label="Đã hoàn tiền"></ng-template>
+      </app-combobox>
 
-      <select formControlName="type">
-        <option value="">All Types</option>
-        <option value="DELIVERY">Delivery</option>
-        <option value="PICKUP">Pickup</option>
-        <option value="WALK_IN">Walk-in</option>
-      </select>
+      <app-combobox formControlName="type" label="Hình thức nhận hàng" placeholder="Hình thức nhận hàng">
+        <ng-template comboOption value="" label="Mọi hình thức nhận hàng"></ng-template>
+        <ng-template comboOption value="DELIVERY" label="Giao hàng"></ng-template>
+        <ng-template comboOption value="PICKUP" label="Nhận tại quầy"></ng-template>
+        <ng-template comboOption value="WALK_IN" label="Khách vãng lai"></ng-template>
+      </app-combobox>
 
-      <select formControlName="dateRange">
-        <option value="today">Today</option>
-        <option value="yesterday">Yesterday</option>
-        <option value="last7days">Last 7 days</option>
-        <option value="custom">Custom Range</option>
-      </select>
+      <app-combobox formControlName="dateRange" label="Khoảng thời gian" placeholder="Khoảng thời gian">
+        <ng-template comboOption value="today" label="Hôm nay"></ng-template>
+        <ng-template comboOption value="yesterday" label="Hôm qua"></ng-template>
+        <ng-template comboOption value="last7days" label="7 ngày qua"></ng-template>
+        <ng-template comboOption value="custom" label="Khoảng ngày tùy chọn"></ng-template>
+      </app-combobox>
 
       <button type="button" class="btn-clear" (click)="reset()">
         <span class="material-symbols-outlined">restart_alt</span>
-        Clear
+        Xóa bộ lọc
       </button>
     </div>
   </form>

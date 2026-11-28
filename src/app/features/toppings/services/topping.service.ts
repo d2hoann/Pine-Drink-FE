@@ -89,7 +89,7 @@ export class ToppingService {
       ...topping,
       id: topping?.id || '',
       code: topping?.code || 'AUTO',
-      name: topping?.name || 'Topping chưa đặt tên',
+      name: topping?.name || 'Phần thêm chưa đặt tên',
       price: Number(topping?.price) || 0,
       imageUrl: topping?.imageUrl || '',
       groupName: topping?.groupName || 'Khác',

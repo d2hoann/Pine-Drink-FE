@@ -19,19 +19,19 @@
       <div class="form-row">
         <div class="form-group">
           <label for="categoryId">Danh mục sản phẩm</label>
-          <select id="categoryId" formControlName="categoryId" class="form-control">
-            <option value="">Tất cả danh mục</option>
-            <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
-          </select>
+          <app-combobox inputId="categoryId" formControlName="categoryId" label="Danh mục" placeholder="Danh mục">
+            <ng-template comboOption value="" label="Tất cả danh mục"></ng-template>
+            <ng-template comboOption *ngFor="let category of categories" [value]="category.id" label="{{ category.name }}"></ng-template>
+          </app-combobox>
         </div>
 
         <div class="form-group">
           <label for="productStatus">Trạng thái sản phẩm</label>
-          <select id="productStatus" formControlName="status" class="form-control">
-            <option value="">Tất cả</option>
-            <option value="ACTIVE">Đang bán</option>
-            <option value="INACTIVE">Ngừng bán</option>
-          </select>
+          <app-combobox inputId="productStatus" formControlName="status" label="Trạng thái sản phẩm" placeholder="Trạng thái sản phẩm">
+            <ng-template comboOption value="" label="Tất cả"></ng-template>
+            <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+            <ng-template comboOption value="INACTIVE" label="Ngừng bán"></ng-template>
+          </app-combobox>
         </div>
 
         <div class="form-group">

@@ -1,3 +1,5 @@
+@use 'centered-popup';
+
 :host {
   display: block;
   color: #173321;
@@ -505,36 +507,18 @@
 }
 
 .category-drawer {
-  position: fixed;
+  @include centered-popup.frame(34rem);
+  @include centered-popup.hide-until-open;
   z-index: 41;
-  top: 16px;
-  right: 16px;
-  bottom: 16px;
-  width: min(460px, calc(100vw - 32px));
   padding: 22px;
-  overflow: hidden;
   border: 1px solid rgba(15, 74, 42, 0.12);
   border-radius: 26px;
   background: rgba(255, 250, 240, 0.97);
   box-shadow: -24px 0 70px rgba(10, 31, 19, 0.18);
-  transform: translateX(calc(100% + 32px));
-  transition: transform 240ms ease;
-
-  &.open { transform: translateX(0); }
-
   form {
-    height: 100%;
-    max-height: calc(100vh - 44px);
     display: flex;
     flex-direction: column;
     gap: 16px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 4px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-
-    &::-webkit-scrollbar { display: none; }
   }
 
   label {
@@ -744,9 +728,6 @@
   .empty-mini .btn { margin-left: 0; }
 
   .category-drawer {
-    inset: auto 10px 10px 10px;
-    top: 10px;
-    width: auto;
     padding: 16px;
     border-radius: 22px;
   }

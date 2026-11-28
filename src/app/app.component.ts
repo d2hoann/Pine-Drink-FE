@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LanguageService } from './core/services/language.service';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './core/services/auth.service';
 
 @Component({
@@ -9,9 +9,10 @@ import { AuthService } from './core/services/auth.service';
 })
 export class AppComponent {
   constructor(
-    private languageService: LanguageService,
+    translate: TranslateService,
     private authService: AuthService
   ) {
+    translate.use('vi');
     this.authService.bootstrapCurrentUser().subscribe();
   }
 }

@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { BaseResponse } from '../../../shared/models/base-response.model';
 import { PageResponse } from '../../../shared/models/page-response.model';
+import { loadAllPages } from '../../../shared/utils/load-all-pages';
 import { Product, ProductSummary } from '../models/product.model';
 import { ProductCreateRequest, ProductUpdateRequest } from '../models/product-request.model';
 
@@ -29,6 +30,10 @@ export class ProductService {
     return this.http
       .get<BaseResponse<PageResponse<ProductSummary>>>(`${this.apiUrl}/summaries`, { params })
       .pipe(map((response) => this.normalizeProductSummaryPage(response.data, page, size)));
+  }
+
+  getProductOptions(): Observable<ProductSummary[]> {
+    return loadAllPages(page => this.getProductSummaries(page, 100));
   }
 
   getProducts(page: number, size: number, keyword?: string, categoryId?: string, status?: string): Observable<PageResponse<Product>> {

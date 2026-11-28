@@ -1,3 +1,5 @@
+@use 'centered-popup';
+
 :host {
   display: block;
 }
@@ -454,12 +456,9 @@
 }
 
 .account-drawer {
-  position: fixed;
-  top: 14px;
-  right: 14px;
-  bottom: 14px;
+  @include centered-popup.frame(34rem);
+  @include centered-popup.hide-until-open;
   z-index: 90;
-  width: min(420px, calc(100vw - 28px));
   display: flex;
   flex-direction: column;
   padding: 18px;
@@ -467,12 +466,6 @@
   background: linear-gradient(160deg, #fffdf4, #efffee);
   border: 1px solid rgba(15, 74, 42, 0.12);
   box-shadow: 0 28px 70px rgba(5, 24, 14, 0.22);
-  transform: translateX(calc(100% + 32px));
-  transition: transform 0.26s ease;
-
-  &.open {
-    transform: translateX(0);
-  }
 }
 
 .drawer-head {

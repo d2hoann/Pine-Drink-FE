@@ -1,0 +1,20 @@
+@mixin frame($width) {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(#{$width}, calc(100% - 1.5rem));
+  height: fit-content;
+  max-height: calc(100% - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@mixin hide-until-open {
+  visibility: hidden;
+
+  &.open {
+    visibility: visible;
+  }
+}

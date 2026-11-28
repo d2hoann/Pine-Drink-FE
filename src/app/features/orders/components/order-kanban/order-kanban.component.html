@@ -17,8 +17,8 @@
         </div>
         
         <div class="customer-info">
-          <span class="name">{{ order.customerName || 'Walk-in' }}</span>
-          <span class="type-tag">{{ order.type }}</span>
+          <span class="name">{{ order.customerName || 'Khách vãng lai' }}</span>
+          <span class="type-tag">{{ order.type | businessLabel:'fulfillment' }}</span>
         </div>
 
         <div class="items-preview">
@@ -30,13 +30,13 @@
           <app-payment-badge [status]="order.paymentStatus"></app-payment-badge>
           <div class="actions" (click)="$event.stopPropagation()">
             <button *ngIf="order.status === 'PENDING'" class="btn-next" (click)="statusChange.emit({order: order, status: 'CONFIRMED'})">
-              Confirm
+              Xác nhận
             </button>
             <button *ngIf="order.status === 'CONFIRMED'" class="btn-next" (click)="statusChange.emit({order: order, status: 'PREPARING'})">
-              Start
+              Bắt đầu
             </button>
             <button *ngIf="order.status === 'PREPARING'" class="btn-next success" (click)="statusChange.emit({order: order, status: 'READY'})">
-              Ready
+              Đã chuẩn bị
             </button>
           </div>
         </div>

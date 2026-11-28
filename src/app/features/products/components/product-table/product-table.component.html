@@ -3,12 +3,12 @@
     <table>
       <thead>
         <tr>
-          <th>Code</th>
-          <th>Name</th>
-          <th>Category</th>
-          <th>Price</th>
-          <th>Status</th>
-          <th class="actions-col">Actions</th>
+          <th>Mã</th>
+          <th>Tên</th>
+          <th>Danh mục</th>
+          <th>Giá</th>
+          <th>Trạng thái</th>
+          <th class="actions-col">Thao tác</th>
         </tr>
       </thead>
       <tbody>
@@ -19,10 +19,10 @@
           </td>
           <td>{{ product.categoryName || 'Chưa phân loại' }}</td>
           <td>{{ product.price | number }} VND</td>
-          <td><span class="status-chip" [class.inactive]="product.status === 'INACTIVE'">{{ product.status }}</span></td>
+          <td><span class="status-chip" [class.inactive]="product.status === 'INACTIVE'">{{ product.status | businessLabel:'product' }}</span></td>
           <td class="actions-col">
-            <button type="button" class="btn btn-secondary btn-small" (click)="edit.emit(product.id)">Edit</button>
-            <button type="button" class="btn btn-danger btn-small" (click)="delete.emit(product.id)">Delete</button>
+            <button type="button" class="btn btn-secondary btn-small" (click)="edit.emit(product.id)">Sửa</button>
+            <button type="button" class="btn btn-danger btn-small" (click)="delete.emit(product.id)">Xóa</button>
           </td>
         </tr>
       </tbody>
@@ -30,6 +30,6 @@
   </div>
 
   <ng-template #emptyBlock>
-    <app-empty-state title="Chua co product" description="Tao san pham dau tien hoac thu lai voi bo loc khac."></app-empty-state>
+    <app-empty-state title="Chưa có sản phẩm" description="Tạo sản phẩm đầu tiên hoặc thử bộ lọc khác."></app-empty-state>
   </ng-template>
 </div>

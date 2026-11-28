@@ -227,7 +227,7 @@ export class AccountsPageComponent implements OnInit {
     }
 
     if (!file.type.startsWith('image/')) {
-      this.toast.warning('Vui lòng chọn file ảnh.');
+      this.toast.warning('Vui lòng chọn tệp ảnh.');
       input.value = '';
       return;
     }
@@ -249,7 +249,7 @@ export class AccountsPageComponent implements OnInit {
         this.updateForm.avatarUrl = response.fileUrl;
       },
       error: () => {
-        this.toast.error('Không thể upload avatar. Vui lòng thử lại.');
+        this.toast.error('Không tải được ảnh đại diện lên. Vui lòng thử lại.');
       }
     });
   }
@@ -318,11 +318,11 @@ export class AccountsPageComponent implements OnInit {
 
   private getCreateValidationMessage(payload: CreateAccountRequest): string | null {
     if (!payload.username || !payload.password || !payload.fullName || !payload.roleCode) {
-      return 'Vui lòng nhập đủ username, mật khẩu, họ tên và vai trò.';
+      return 'Vui lòng nhập đủ tên đăng nhập, mật khẩu, họ tên và vai trò.';
     }
 
     if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
-      return 'Email chưa đúng định dạng.';
+      return 'Thư điện tử chưa đúng định dạng.';
     }
 
     if (payload.password.length < 8) {
@@ -343,7 +343,7 @@ export class AccountsPageComponent implements OnInit {
     }
 
     if (payload.scopeType === 'BRANCH' && !payload.scopeBranchId) {
-      return 'Vui lòng chọn chi nhánh cho Manager/Delivery.';
+      return 'Vui lòng chọn chi nhánh cho quản lý hoặc nhân viên giao hàng.';
     }
 
     return null;
@@ -353,7 +353,7 @@ export class AccountsPageComponent implements OnInit {
     const errorMessages: Record<string, string> = {
       AUTH_010: 'Mật khẩu chưa đủ mạnh. Vui lòng dùng ít nhất 8 ký tự gồm chữ hoa, chữ thường và số.',
       AUTH_013: 'Tên đăng nhập này đã được sử dụng.',
-      AUTH_014: 'Email này đã được sử dụng.',
+      AUTH_014: 'Thư điện tử này đã được sử dụng.',
       AUTH_015: 'Số điện thoại này đã được sử dụng.',
       AUTH_021: 'Tài khoản chưa được gán vào chi nhánh phù hợp.'
     };
@@ -403,13 +403,12 @@ export class AccountsPageComponent implements OnInit {
 
   private loadBranchesForScope(): void {
     this.isLoadingBranches = true;
-    this.branchService.getActiveBranches(0, 200).pipe(
+    this.branchService.getActiveBranchOptions().pipe(
       finalize(() => {
         this.isLoadingBranches = false;
       })
     ).subscribe({
-      next: (page) => {
-        const branches = page.content || [];
+      next: (branches) => {
         this.availableBranches = this.filterBranchesByCurrentScope(branches);
         this.applyRoleScopeDefaults();
       },
@@ -506,7 +505,7 @@ export class AccountsPageComponent implements OnInit {
     return {
       ...account,
       displayName: account.fullName || account.username || 'Tài khoản chưa đặt tên',
-      displayEmail: account.email || 'Chưa có email',
+      displayEmail: account.email || 'Chưa có thư điện tử',
       displayRole: role,
       roleClass: role.toLowerCase(),
       statusLabel: status,

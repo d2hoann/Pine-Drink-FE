@@ -37,7 +37,7 @@ export class ApiErrorMessageService {
     AUTH_011: 'Mã đặt lại mật khẩu đã hết hạn.',
     AUTH_012: 'Không tìm thấy tài khoản tương ứng.',
     AUTH_013: 'Tên đăng nhập này đã được sử dụng.',
-    AUTH_014: 'Email này đã được sử dụng.',
+    AUTH_014: 'Thư điện tử này đã được sử dụng.',
     AUTH_015: 'Số điện thoại này đã được sử dụng.',
     AUTH_016: 'Mã OTP chưa đúng. Vui lòng kiểm tra lại.',
     AUTH_017: 'Mã OTP đã hết hạn. Vui lòng gửi lại mã mới.',
@@ -54,8 +54,8 @@ export class ApiErrorMessageService {
     AUTH_028: 'Thao tác cần đăng nhập',
     AUTH_GOOGLE_001: 'Thiếu mã xác thực Google.',
     AUTH_GOOGLE_002: 'Mã xác thực Google không hợp lệ.',
-    AUTH_GOOGLE_003: 'Email Google chưa được xác minh.',
-    AUTH_GOOGLE_004: 'Email này đã được dùng bởi phương thức đăng nhập khác.',
+    AUTH_GOOGLE_003: 'Thư điện tử Google chưa được xác minh.',
+    AUTH_GOOGLE_004: 'Thư điện tử này đã được dùng bởi phương thức đăng nhập khác.',
     AUTH_GOOGLE_005: 'Tài khoản Google không khớp với tài khoản hiện có.',
     RATE_001: 'Bạn thao tác quá nhiều lần. Vui lòng thử lại sau ít phút.',
     ROLE_001: 'Không tìm thấy vai trò phù hợp.',
@@ -74,19 +74,19 @@ export class ApiErrorMessageService {
     BRANCH_007: 'Giờ mở cửa phải trước giờ đóng cửa.',
     BRANCH_008: 'Không tìm thấy cấu hình bán sản phẩm tại chi nhánh.',
     BRANCH_009: 'Cấu hình bán sản phẩm tại chi nhánh đã tồn tại.',
-    BRANCH_010: 'Không tìm thấy cấu hình bán topping tại chi nhánh.',
-    BRANCH_011: 'Cấu hình bán topping tại chi nhánh đã tồn tại.',
+    BRANCH_010: 'Không tìm thấy cấu hình bán phần thêm tại chi nhánh.',
+    BRANCH_011: 'Cấu hình bán phần thêm tại chi nhánh đã tồn tại.',
     BRANCH_012: 'Thời gian bắt đầu phải trước thời gian kết thúc.',
     CATEGORY_001: 'Không tìm thấy danh mục.',
     CATEGORY_002: 'Mã danh mục đã tồn tại.',
     CATEGORY_003: 'Danh mục đã ngừng hoạt động.',
     TOPPING_001: 'Không tìm thấy topping.',
-    TOPPING_002: 'Mã topping đã tồn tại.',
-    TOPPING_003: 'Topping đã ngừng hoạt động.',
-    TOPPING_004: 'Không tìm thấy topping của sản phẩm.',
-    TOPPING_005: 'Topping của sản phẩm đã tồn tại.',
-    TOPPING_006: 'Topping của sản phẩm đã ngừng hoạt động.',
-    TOPPING_007: 'Topping này không thuộc sản phẩm đã chọn.',
+    TOPPING_002: 'Mã phần thêm đã tồn tại.',
+    TOPPING_003: 'Phần thêm đã ngừng hoạt động.',
+    TOPPING_004: 'Không tìm thấy phần thêm của sản phẩm.',
+    TOPPING_005: 'Phần thêm của sản phẩm đã tồn tại.',
+    TOPPING_006: 'Phần thêm của sản phẩm đã ngừng hoạt động.',
+    TOPPING_007: 'Phần thêm này không thuộc sản phẩm đã chọn.',
     PRODUCT_001: 'Không tìm thấy sản phẩm.',
     PRODUCT_002: 'Mã sản phẩm đã tồn tại.',
     PRODUCT_003: 'Không tìm thấy phạm vi sản phẩm.',
@@ -106,23 +106,25 @@ export class ApiErrorMessageService {
     ORDER_003: 'Đơn hàng không còn ở trạng thái chờ xác nhận.',
     PAYMENT_001: 'Cổng thanh toán đang tạm thời không khả dụng.',
     VOUCHER_001: 'Không tìm thấy voucher.',
-    VOUCHER_002: 'Mã voucher đã tồn tại.',
-    VOUCHER_003: 'Khoảng thời gian áp dụng voucher không hợp lệ.',
-    VOUCHER_004: 'Quy tắc giảm giá của voucher không hợp lệ.',
-    VOUCHER_005: 'Không thể xóa voucher vì đã có lịch sử sử dụng.',
-    VOUCHER_006: 'Trạng thái voucher không hợp lệ.',
-    VOUCHER_007: 'Phạm vi chi nhánh của voucher không hợp lệ.',
-    CHAT_001: 'Không tìm thấy phòng chat.',
-    CHAT_002: 'Bạn không có quyền truy cập phòng chat này.',
+    VOUCHER_002: 'Mã giảm giá đã tồn tại.',
+    VOUCHER_003: 'Khoảng thời gian áp dụng mã giảm giá không hợp lệ.',
+    VOUCHER_004: 'Quy tắc giảm giá của mã giảm giá không hợp lệ.',
+    VOUCHER_005: 'Không thể xóa mã giảm giá vì đã có lịch sử sử dụng.',
+    VOUCHER_006: 'Trạng thái mã giảm giá không hợp lệ.',
+    VOUCHER_007: 'Phạm vi chi nhánh của mã giảm giá không hợp lệ.',
+    CHAT_001: 'Không tìm thấy cuộc trò chuyện.',
+    CHAT_002: 'Bạn không có quyền truy cập cuộc trò chuyện này.',
     CHAT_003: 'Nội dung tin nhắn không được để trống.',
     CHAT_004: 'Người gửi tin nhắn không hợp lệ.'
   };
 
   private readonly fieldNames: Record<string, string> = {
     username: 'Tên đăng nhập', password: 'Mật khẩu', confirmPassword: 'Xác nhận mật khẩu', oldPassword: 'Mật khẩu hiện tại', newPassword: 'Mật khẩu mới',
-    fullName: 'Họ và tên', name: 'Tên', code: 'Mã', email: 'Email', phone: 'Số điện thoại', otp: 'OTP', siteKey: 'Kênh đăng ký',
+    fullName: 'Họ và tên', name: 'Tên', code: 'Mã', email: 'Thư điện tử', phone: 'Số điện thoại', otp: 'OTP', siteKey: 'Kênh đăng ký',
     address: 'Địa chỉ', branchId: 'Chi nhánh', categoryId: 'Danh mục', productId: 'Sản phẩm', quantity: 'Số lượng', price: 'Giá', salePrice: 'Giá bán',
-    status: 'Trạng thái', startAt: 'Thời gian bắt đầu', endAt: 'Thời gian kết thúc', discountValue: 'Giá trị giảm', minOrderAmount: 'Giá trị đơn tối thiểu'
+    status: 'Trạng thái', startAt: 'Thời gian bắt đầu', endAt: 'Thời gian kết thúc', discountValue: 'Giá trị giảm', minOrderAmount: 'Giá trị đơn tối thiểu',
+    variantId: 'Biến thể', stockDate: 'Ngày bán', dailyQuantity: 'Hạn mức bán', reason: 'Lý do',
+    sourceDate: 'Ngày nguồn', targetDate: 'Ngày nhận hạn mức', overwrite: 'Ghi đè hạn mức'
   };
 
   resolve(error: unknown, fallback = 'Có lỗi xảy ra. Vui lòng thử lại.'): string {
@@ -154,7 +156,7 @@ export class ApiErrorMessageService {
   }
 
   resolveFieldName(field: string): string {
-    return this.fieldNames[field] || field;
+    return this.fieldNames[field] || 'Thông tin nhập';
   }
 
   private resolveFieldErrors(errors?: FieldError[] | null): string {
@@ -168,7 +170,7 @@ export class ApiErrorMessageService {
     const normalized = message.toLowerCase();
     if (normalized.includes('must not be blank') || normalized.includes('must not be empty')) return 'không được để trống';
     if (normalized.includes('must not be null')) return 'không được bỏ trống';
-    if (normalized.includes('must be a well-formed email')) return 'không đúng định dạng email';
+    if (normalized.includes('must be a well-formed email')) return 'không đúng định dạng thư điện tử';
     if (normalized.includes('size must be between')) return 'độ dài chưa hợp lệ';
     if (normalized.includes('must be greater than or equal to')) return 'phải lớn hơn hoặc bằng giá trị tối thiểu';
     if (normalized.includes('must be less than or equal to')) return 'phải nhỏ hơn hoặc bằng giá trị tối đa';
@@ -177,7 +179,7 @@ export class ApiErrorMessageService {
 
   private resolveStatusMessage(status: number, fallback: string): string {
     switch (status) {
-      case 0: return 'Không kết nối được tới server. Vui lòng kiểm tra mạng hoặc backend.';
+      case 0: return 'Không kết nối được với hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại.';
       case 400: return 'Dữ liệu gửi lên chưa hợp lệ. Vui lòng kiểm tra lại.';
       case 401: return 'Bạn cần đăng nhập để tiếp tục.';
       case 403: return 'Bạn chưa có quyền thực hiện thao tác này.';
@@ -192,7 +194,7 @@ export class ApiErrorMessageService {
   private isSafeVietnameseMessage(message: string): boolean {
     const value = message.trim();
     if (!value) return false;
-    const technicalEnglish = /failed|error|invalid|forbidden|unauthorized|internal|malformed|not found|expired|required|exception|token|resource|request|validation/i;
+    const technicalEnglish = /\b(failed|error|invalid|forbidden|unauthorized|internal|malformed|not found|expired|required|exception|token|resource|request|validation|quota|voucher|topping|backend|server|scope|role)\b/i;
     const vietnameseChars = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
     return vietnameseChars.test(value) && !technicalEnglish.test(value);
   }

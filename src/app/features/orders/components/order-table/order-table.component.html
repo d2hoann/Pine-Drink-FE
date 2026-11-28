@@ -6,14 +6,14 @@
         <th class="col-check">
           <input type="checkbox" class="styled-checkbox">
         </th>
-        <th class="col-id">Order ID</th>
-        <th class="col-time">Time</th>
-        <th class="col-customer">Customer</th>
-        <th class="col-items">Items Summary</th>
-        <th class="col-total">Total</th>
-        <th class="col-payment">Payment</th>
-        <th class="col-status">Status</th>
-        <th class="col-priority">Priority</th>
+        <th class="col-id">Mã đơn</th>
+        <th class="col-time">Thời gian</th>
+        <th class="col-customer">Khách hàng</th>
+        <th class="col-items">Món đã đặt</th>
+        <th class="col-total">Tổng tiền</th>
+        <th class="col-payment">Thanh toán</th>
+        <th class="col-status">Trạng thái</th>
+        <th class="col-priority">Mức ưu tiên</th>
         <th class="col-actions"></th>
       </tr>
     </thead>
@@ -34,8 +34,8 @@
           <div class="customer-cell">
             <div class="avatar">{{ (order.customerName || 'W')[0] }}</div>
             <div class="info">
-              <span class="name">{{ order.customerName || 'Walk-in' }}</span>
-              <span class="phone">{{ order.customerPhone || 'N/A' }}</span>
+              <span class="name">{{ order.customerName || 'Khách vãng lai' }}</span>
+              <span class="phone">{{ order.customerPhone || 'Chưa cập nhật' }}</span>
             </div>
           </div>
         </td>
@@ -56,7 +56,7 @@
         </td>
         <td>
           <span class="priority-dot" [ngClass]="(order.priority || 'NORMAL').toLowerCase()"></span>
-          <span class="priority-label">{{ order.priority || 'NORMAL' }}</span>
+          <span class="priority-label">{{ (order.priority || 'NORMAL') | businessLabel:'priority' }}</span>
         </td>
         <td class="col-actions">
           <button class="btn-icon" (click)="$event.stopPropagation(); actionClick.emit({order: order, type: 'more'})">

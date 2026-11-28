@@ -149,7 +149,7 @@ export class ProductVariantsPageComponent implements OnInit {
 
   createDefaultSizeSet(): void {
     if (!this.selectedProductId) {
-      this.errorMessage = 'Vui lòng chọn sản phẩm trước khi tạo bộ size.';
+      this.errorMessage = 'Vui lòng chọn sản phẩm trước khi tạo các kích cỡ mẫu.';
       return;
     }
 
@@ -157,7 +157,7 @@ export class ProductVariantsPageComponent implements OnInit {
     const sizesToCreate = this.defaultSizeSet.filter((size) => !existingSizes.has(size.label));
 
     if (!sizesToCreate.length) {
-      this.errorMessage = 'Sản phẩm này đã có đủ size M, L và XL.';
+      this.errorMessage = 'Sản phẩm này đã có đủ kích cỡ M, L và XL.';
       return;
     }
 
@@ -166,7 +166,7 @@ export class ProductVariantsPageComponent implements OnInit {
     this.errorMessage = '';
 
     forkJoin(sizesToCreate.map((size, index) => this.variantService.createVariant(this.selectedProductId, {
-      variantName: `Size ${size.label}`,
+      variantName: `Kích cỡ ${size.label}`,
       sizeLabel: size.label,
       priceDelta: size.priceDelta,
       displayOrder: baseOrder + index
@@ -175,7 +175,7 @@ export class ProductVariantsPageComponent implements OnInit {
       .subscribe({
         next: () => this.loadVariants(0),
         error: () => {
-          this.errorMessage = 'Không tạo được bộ size M/L/XL. Vui lòng thử lại.';
+          this.errorMessage = 'Không tạo được bộ kích cỡ M/L/XL. Vui lòng thử lại.';
         }
       });
   }
@@ -262,11 +262,11 @@ export class ProductVariantsPageComponent implements OnInit {
     this.productLoading = true;
     this.errorMessage = '';
 
-    this.productService.getProductSummaries(0, 100)
+    this.productService.getProductOptions()
       .pipe(finalize(() => (this.productLoading = false)))
       .subscribe({
-        next: (pageResponse) => {
-          this.products = pageResponse.content || [];
+        next: (products) => {
+          this.products = products;
           this.selectedProductId = this.selectedProductId || this.products[0]?.id || '';
           if (this.selectedProductId) {
             this.loadVariants(0);
@@ -299,7 +299,7 @@ export class ProductVariantsPageComponent implements OnInit {
         error: () => {
           this.pageData = this.createEmptyPage(page);
           this.variants = [];
-          this.errorMessage = 'Không tải được biến thể sản phẩm từ server.';
+          this.errorMessage = 'Không tải được biến thể sản phẩm.';
         }
       });
   }

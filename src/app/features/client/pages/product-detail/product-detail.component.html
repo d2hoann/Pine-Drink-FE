@@ -49,7 +49,7 @@
       <div class="customization-group">
         <h3 class="group-title">
           <span class="material-symbols-outlined">straighten</span>
-          Chọn size
+          Chọn kích cỡ
           <span class="optional-label" *ngIf="visibleSizeOptions.length">{{ visibleSizeOptions.length }} lựa chọn</span>
         </h3>
         <div class="size-options">
@@ -69,13 +69,13 @@
           </button>
         </div>
         <p class="variant-hint" *ngIf="selectedVariant">
-          {{ selectedVariant.variantName }} · Giá size {{ formatPrice(basePrice) }} · {{ quotaStatusLabel }}
+          {{ selectedVariant.variantName }} · Giá theo kích cỡ {{ formatPrice(basePrice) }} · {{ quotaStatusLabel }}
         </p>
         <p class="variant-hint" *ngIf="!selectedVariant && visibleSizeOptions.length === 1">
-          Sản phẩm chưa có size riêng, dùng giá mặc định.
+          Sản phẩm chưa có kích cỡ riêng, dùng giá mặc định.
         </p>
         <p class="variant-hint is-empty" *ngIf="!visibleSizeOptions.length">
-          Chi nhánh chưa set quota cho các size hôm nay.
+          Chi nhánh chưa đặt hạn mức bán cho các kích cỡ hôm nay.
         </p>
       </div>
 

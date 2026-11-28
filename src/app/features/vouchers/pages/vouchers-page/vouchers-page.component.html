@@ -1,20 +1,20 @@
-<app-page-header title="Vouchers" description="Quản trị mã giảm giá, thời gian chạy, giới hạn sử dụng và phạm vi chi nhánh.">
-  <button id="createVoucherBtn" type="button" class="voucher-main-btn create" (click)="openCreate()"><span>＋</span> Tạo voucher</button>
+<app-page-header title="Mã giảm giá" description="Quản trị mã giảm giá, thời gian chạy, giới hạn sử dụng và phạm vi chi nhánh.">
+  <button id="createVoucherBtn" type="button" class="voucher-main-btn create" (click)="openCreate()"><span>＋</span> Tạo mã giảm giá</button>
 </app-page-header>
 
 <section class="voucher-toolbar">
-  <input id="voucherKeyword" type="search" placeholder="Tìm mã / tên voucher..." [(ngModel)]="keyword" (keyup.enter)="applyFilters()" />
-  <select id="voucherStatus" [(ngModel)]="status" (change)="applyFilters()">
-    <option value="">Tất cả trạng thái</option>
-    <option value="ACTIVE">ACTIVE</option>
-    <option value="INACTIVE">INACTIVE</option>
-    <option value="EXPIRED">EXPIRED</option>
-  </select>
-  <select id="voucherDiscountType" [(ngModel)]="discountType" (change)="applyFilters()">
-    <option value="">Tất cả loại giảm</option>
-    <option value="PERCENTAGE">Theo %</option>
-    <option value="FIXED_AMOUNT">Tiền cố định</option>
-  </select>
+  <input id="voucherKeyword" type="search" placeholder="Tìm theo mã hoặc tên ưu đãi..." [(ngModel)]="keyword" (keyup.enter)="applyFilters()" />
+  <app-combobox inputId="voucherStatus" [(ngModel)]="status" (selectionChange)="applyFilters()" label="Trạng thái ưu đãi" placeholder="Trạng thái ưu đãi">
+    <ng-template comboOption value="" label="Tất cả trạng thái"></ng-template>
+    <ng-template comboOption value="ACTIVE" label="Đang áp dụng"></ng-template>
+    <ng-template comboOption value="INACTIVE" label="Đã tắt"></ng-template>
+    <ng-template comboOption value="EXPIRED" label="Đã hết hạn"></ng-template>
+  </app-combobox>
+  <app-combobox inputId="voucherDiscountType" [(ngModel)]="discountType" (selectionChange)="applyFilters()" label="Loại giảm giá" placeholder="Loại giảm giá">
+    <ng-template comboOption value="" label="Tất cả loại giảm"></ng-template>
+    <ng-template comboOption value="PERCENTAGE" label="Theo %"></ng-template>
+    <ng-template comboOption value="FIXED_AMOUNT" label="Tiền cố định"></ng-template>
+  </app-combobox>
   <button id="voucherFilterBtn" type="button" class="voucher-main-btn filter" (click)="applyFilters()"><span>⌕</span> Lọc</button>
 </section>
 
@@ -22,16 +22,21 @@
   <div class="form-head">
     <div>
       <span class="eyebrow">{{ editing ? 'Chỉnh sửa' : 'Tạo mới' }}</span>
-      <h2>{{ editing ? editing.code : 'Voucher campaign' }}</h2>
+      <h2>{{ editing ? editing.code : 'Chương trình ưu đãi' }}</h2>
     </div>
     <button id="closeVoucherFormBtn" type="button" class="ghost-btn" (click)="showForm = false">✕</button>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="voucher-form">
-    <label>Mã voucher<input id="voucherCode" formControlName="code" placeholder="PINE20" /></label>
+    <label>Mã giảm giá<input id="voucherCode" formControlName="code" placeholder="PINE20" /></label>
     <label>Tên chiến dịch<input id="voucherName" formControlName="name" placeholder="Giảm 20% trà dứa" /></label>
     <label class="wide">Mô tả<input id="voucherDescription" formControlName="description" placeholder="Áp dụng cho đơn từ..." /></label>
-    <label>Loại giảm<select id="voucherFormDiscountType" formControlName="discountType"><option value="PERCENTAGE">PERCENTAGE</option><option value="FIXED_AMOUNT">FIXED_AMOUNT</option></select></label>
+    <label>Loại giảm
+      <app-combobox inputId="voucherFormDiscountType" formControlName="discountType" label="Loại giảm giá" placeholder="Loại giảm giá">
+        <ng-template comboOption value="PERCENTAGE" label="Theo phần trăm"></ng-template>
+        <ng-template comboOption value="FIXED_AMOUNT" label="Số tiền cố định"></ng-template>
+      </app-combobox>
+    </label>
     <label>Giá trị giảm<input id="voucherDiscountValue" type="number" formControlName="discountValue" min="0.01" step="0.01" /></label>
     <label>Giảm tối đa<input id="voucherMaxDiscount" type="number" formControlName="maxDiscountAmount" min="0" /></label>
     <label>Đơn tối thiểu<input id="voucherMinOrder" type="number" formControlName="minOrderAmount" min="0" /></label>
@@ -39,53 +44,32 @@
     <label>Lượt / khách<input id="voucherPerCustomer" type="number" formControlName="usageLimitPerCustomer" min="1" /></label>
     <label>Bắt đầu<input id="voucherStartAt" type="datetime-local" formControlName="startAt" /></label>
     <label>Kết thúc<input id="voucherEndAt" type="datetime-local" formControlName="endAt" /></label>
-    <div class="branch-scope wide" [class.open]="branchScopeOpen">
+    <div class="branch-scope wide">
       <div class="branch-scope-head">
         <div>
           <span>Phạm vi chi nhánh</span>
           <small>{{ selectedBranchIds.length ? ('Áp dụng cho ' + selectedBranchIds.length + ' chi nhánh') : 'Toàn hệ thống' }}</small>
         </div>
-        <button id="clearVoucherBranchesBtn" type="button" class="scope-clear" (click)="clearBranchScope()" [disabled]="!selectedBranchIds.length">Clear</button>
+        <button id="clearVoucherBranchesBtn" type="button" class="scope-clear" (click)="clearBranchScope()" [disabled]="!selectedBranchIds.length">Xóa bộ lọc</button>
       </div>
 
-      <button id="openVoucherBranchesBtn" type="button" class="branch-select-trigger" (click)="branchScopeOpen = !branchScopeOpen">
-        <span>{{ selectedBranchLabels.length ? selectedBranchLabels.join(', ') : 'Chọn chi nhánh áp dụng' }}</span>
-        <strong>{{ branchScopeOpen ? '⌃' : '⌄' }}</strong>
-      </button>
-
-      <div *ngIf="branchScopeOpen" class="branch-dropdown">
-        <input id="voucherBranchSearch" type="search" [(ngModel)]="branchKeyword" [ngModelOptions]="{ standalone: true }" placeholder="Tìm theo tên, mã, địa chỉ chi nhánh..." />
-
-        <div *ngIf="loadingBranches" class="branch-loading">Đang tải chi nhánh...</div>
-
-        <div *ngIf="!loadingBranches" class="branch-choice-grid">
-          <button
-            *ngFor="let branch of filteredBranches"
-            type="button"
-            class="branch-choice"
-            [class.selected]="isBranchSelected(branch.id)"
-            (click)="toggleBranch(branch.id)"
-          >
-            <span class="check">{{ isBranchSelected(branch.id) ? '✓' : '+' }}</span>
-            <strong>{{ branch.name }}</strong>
-            <small>{{ branch.address || branch.code || 'Chi nhánh Pine Drink' }}</small>
-          </button>
-        </div>
-
-        <div *ngIf="!loadingBranches && !filteredBranches.length" class="branch-loading">Không tìm thấy chi nhánh</div>
-      </div>
-
-      <input id="voucherBranchIds" type="hidden" formControlName="branchIdsText" />
+      <app-combobox inputId="voucherBranchIds" formControlName="branchIds" [multiple]="true"
+        [interactionDisabled]="loadingBranches" label="Chi nhánh áp dụng"
+        [placeholder]="loadingBranches ? 'Đang tải chi nhánh…' : 'Chọn chi nhánh áp dụng'">
+        <ng-template comboOption *ngFor="let branch of branches" [value]="branch.id"
+          [label]="branch.code ? branch.code + ' · ' + branch.name : branch.name"
+          [keywords]="branch.address || ''"></ng-template>
+      </app-combobox>
     </div>
-    <button id="saveVoucherBtn" type="submit" class="voucher-main-btn save wide" [disabled]="saving"><span>{{ saving ? '⏳' : '✓' }}</span> {{ saving ? 'Đang lưu...' : 'Lưu voucher' }}</button>
+    <button id="saveVoucherBtn" type="submit" class="voucher-main-btn save wide" [disabled]="saving"><span>{{ saving ? '⏳' : '✓' }}</span> {{ saving ? 'Đang lưu...' : 'Lưu mã giảm giá' }}</button>
   </form>
 </section>
 
-<div *ngIf="loading && !vouchers.length" class="loading-card">Đang tải vouchers...</div>
+<div *ngIf="loading && !vouchers.length" class="loading-card">Đang tải mã giảm giá...</div>
 
 <section class="voucher-list" *ngIf="vouchers.length">
   <div class="voucher-list-head">
-    <span>Voucher</span>
+    <span>Mã giảm giá</span>
     <span>Giảm giá</span>
     <span>Điều kiện</span>
     <span>Sử dụng</span>
@@ -100,7 +84,7 @@
     [class.is-muted]="voucher.status !== 'ACTIVE'"
     tabindex="0"
     role="button"
-    [attr.aria-label]="'Xem chi tiết voucher ' + voucher.name"
+    [attr.aria-label]="'Xem chi tiết mã giảm giá ' + voucher.name"
     (click)="openEdit(voucher)"
     (keydown.enter)="openEdit(voucher)"
     (keydown.space)="openEdit(voucher); $event.preventDefault()">
@@ -133,7 +117,7 @@
     </div>
 
     <div class="voucher-cell">
-      <span class="status-pill" [class.active]="voucher.status === 'ACTIVE'" [class.inactive]="voucher.status === 'INACTIVE'" [class.expired]="voucher.status === 'EXPIRED'">{{ voucher.status }}</span>
+      <span class="status-pill" [class.active]="voucher.status === 'ACTIVE'" [class.inactive]="voucher.status === 'INACTIVE'" [class.expired]="voucher.status === 'EXPIRED'">{{ voucher.status | businessLabel:'promotion' }}</span>
     </div>
 
     <div class="ticket-actions">
@@ -144,7 +128,7 @@
   </article>
 </section>
 
-<app-empty-state *ngIf="!loading && !vouchers.length" icon="confirmation_number" title="Chưa có voucher" description="Tạo campaign đầu tiên để bắt đầu chạy ưu đãi."></app-empty-state>
+<app-empty-state *ngIf="!loading && !vouchers.length" icon="confirmation_number" title="Chưa có mã giảm giá" description="Tạo mã giảm giá đầu tiên để bắt đầu áp dụng ưu đãi."></app-empty-state>
 
 <app-admin-pagination
   *ngIf="totalElements > 0"
@@ -153,7 +137,7 @@
   [totalItems]="totalElements"
   [pageSize]="size"
   [pageSizeOptions]="pageSizeOptions"
-  itemLabel="voucher"
+  itemLabel="mã giảm giá"
   [disabled]="loading"
   (pageChange)="changePage($event)"
   (pageSizeChange)="changePageSize($event)">

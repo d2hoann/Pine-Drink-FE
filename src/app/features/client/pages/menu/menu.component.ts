@@ -88,7 +88,7 @@ export class MenuComponent implements OnInit {
         this.allProducts = [];
         this.filteredProducts = [];
         this.categories = [{ id: 'all', name: 'Tất cả', icon: 'apps', count: 0 }];
-        this.errorMessage = 'Không tải được menu từ server. Vui lòng thử lại sau.';
+        this.errorMessage = 'Không tải được thực đơn. Vui lòng thử lại sau.';
         this.loading = false;
       }
     });
@@ -234,7 +234,7 @@ export class MenuComponent implements OnInit {
 
   productBadge(product: ProductSummary): string {
     if (this.isProductSoldOut(product)) { return 'Hết hàng'; }
-    if (product.bestSeller) { return 'Best seller'; }
+    if (product.bestSeller) { return 'Bán chạy'; }
     if (product.featured) { return 'Nổi bật'; }
     return '';
   }

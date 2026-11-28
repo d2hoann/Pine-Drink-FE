@@ -1,9 +1,9 @@
-<section class="pt-page" aria-label="Topping theo sản phẩm">
-  <section class="pt-overview" aria-label="Tổng quan topping theo sản phẩm">
+<section class="pt-page" aria-label="Phần thêm theo sản phẩm">
+  <section class="pt-overview" aria-label="Tổng quan phần thêm theo sản phẩm">
     <div class="pt-overview-main">
       <div class="pt-title-block">
-        <h1>Topping theo sản phẩm</h1>
-        <p>Chọn sản phẩm → xem topping đã gắn → gắn topping → sửa/ẩn/xóa.</p>
+        <h1>Phần thêm theo sản phẩm</h1>
+        <p>Chọn sản phẩm → xem phần thêm đã gắn → gắn phần thêm → sửa/ẩn/xóa.</p>
       </div>
 
       <div class="pt-header-actions">
@@ -13,12 +13,12 @@
         </button>
         <button id="open-assign-topping-btn" type="button" class="pt-btn pt-btn-primary" (click)="openCreateDrawer()" [disabled]="!selectedProductId || toppingLoading">
           <span class="material-symbols-outlined">add_circle</span>
-          Gắn topping
+          Gắn phần thêm
         </button>
       </div>
     </div>
 
-    <div class="pt-summary" aria-label="Tổng quan topping">
+    <div class="pt-summary" aria-label="Tổng quan phần thêm">
       <article>
         <span class="material-symbols-outlined">link</span>
         <div>
@@ -52,17 +52,10 @@
     <div class="pt-flow">
       <label class="pt-product-select">
         <span>1. Chọn sản phẩm</span>
-        <div class="pt-product-search">
-          <span class="material-symbols-outlined">manage_search</span>
-          <input id="product-topping-product-search" type="search" [(ngModel)]="productSearchTerm" placeholder="Tìm theo tên, mã, danh mục...">
-        </div>
-        <select id="product-topping-product-select" [ngModel]="selectedProductId" (ngModelChange)="onProductChange($event)" [disabled]="productLoading">
-          <option value="" disabled>Chọn sản phẩm</option>
-          <option *ngFor="let product of filteredProducts; trackBy: trackProduct" [ngValue]="product.id">
-            {{ product.name }} · {{ product.code }}
-          </option>
-        </select>
-        <small *ngIf="productSearchTerm && !filteredProducts.length">Không tìm thấy sản phẩm phù hợp.</small>
+        <app-combobox inputId="product-topping-product-select" [ngModel]="selectedProductId" (ngModelChange)="onProductChange($event)" [disabled]="productLoading" label="Sản phẩm" placeholder="Sản phẩm">
+          <ng-template comboOption value="" [disabled]="true" label="Chọn sản phẩm"></ng-template>
+          <ng-template comboOption *ngFor="let product of products; trackBy: trackProduct" [value]="product.id" label="{{ product.name }} · {{ product.code }}" [keywords]="product.categoryName || ''"></ng-template>
+        </app-combobox>
       </label>
 
       <div class="pt-selected-product" *ngIf="selectedProduct as product">
@@ -78,37 +71,37 @@
     <div class="pt-toolbar">
       <label class="pt-search">
         <span class="material-symbols-outlined">search</span>
-        <input id="product-topping-search-input" type="search" [(ngModel)]="searchTerm" placeholder="Tìm topping, mã, nhóm...">
+        <input id="product-topping-search-input" type="search" [(ngModel)]="searchTerm" placeholder="Tìm phần thêm, mã, nhóm...">
       </label>
 
-      <select id="product-topping-status-filter" class="pt-filter" [(ngModel)]="statusFilter">
-        <option value="ALL">Tất cả trạng thái</option>
-        <option value="ACTIVE">Đang bán</option>
-        <option value="INACTIVE">Tạm ẩn</option>
-      </select>
+      <app-combobox inputId="product-topping-status-filter" class="pt-filter" [(ngModel)]="statusFilter" label="Trạng thái phần thêm" placeholder="Trạng thái phần thêm">
+        <ng-template comboOption value="ALL" label="Tất cả trạng thái"></ng-template>
+        <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+      </app-combobox>
 
       <span class="pt-loading" *ngIf="loading || productLoading || toppingLoading">Đang tải...</span>
     </div>
 
     <div class="pt-empty" *ngIf="!loading && selectedProductId && !productToppings.length">
       <span class="material-symbols-outlined">icecream</span>
-      <strong>Sản phẩm chưa có topping</strong>
-      <p>Gắn topping active từ kho master để khách có thêm lựa chọn.</p>
+      <strong>Sản phẩm chưa có phần thêm</strong>
+      <p>Thêm phần đang bán từ danh mục để khách có thêm lựa chọn.</p>
       <button type="button" class="pt-btn pt-btn-primary" (click)="openCreateDrawer()">
         <span class="material-symbols-outlined">add</span>
-        Gắn topping
+        Gắn phần thêm
       </button>
     </div>
 
     <div class="pt-empty" *ngIf="!productLoading && !products.length">
       <span class="material-symbols-outlined">local_cafe</span>
       <strong>Chưa có sản phẩm</strong>
-      <p>Cần tạo sản phẩm trước khi cấu hình topping.</p>
+      <p>Cần tạo sản phẩm trước khi cấu hình phần thêm.</p>
     </div>
 
     <div class="pt-table-card" *ngIf="visibleProductToppings.length">
       <div class="pt-table-head">
-        <span>Topping</span>
+        <span>Phần thêm</span>
         <span>Nhóm</span>
         <span>Giá</span>
         <span>Thiết lập</span>
@@ -117,7 +110,7 @@
       </div>
 
       <article class="pt-row" *ngFor="let item of visibleProductToppings; trackBy: trackProductTopping">
-        <div class="pt-cell pt-topping-main" data-label="Topping">
+        <div class="pt-cell pt-topping-main" data-label="Phần thêm">
           <div class="pt-avatar">
             <img *ngIf="item.toppingImageUrl" [src]="item.toppingImageUrl" [alt]="item.toppingName">
             <span *ngIf="!item.toppingImageUrl" class="material-symbols-outlined">icecream</span>
@@ -155,7 +148,7 @@
             <span class="material-symbols-outlined">{{ item.status === 'ACTIVE' ? 'visibility_off' : 'visibility' }}</span>
             {{ item.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}
           </button>
-          <button id="delete-product-topping-{{ item.id }}" type="button" class="pt-icon-btn danger" (click)="deleteProductTopping(item)" title="Xóa cấu hình topping">
+          <button id="delete-product-topping-{{ item.id }}" type="button" class="pt-icon-btn danger" (click)="deleteProductTopping(item)" title="Xóa cấu hình phần thêm">
             <span class="material-symbols-outlined">delete</span>
           </button>
         </div>
@@ -169,7 +162,7 @@
       [totalItems]="pageData.totalElements"
       [pageSize]="pageData.size"
       [pageSizeOptions]="pageSizeOptions"
-      itemLabel="topping"
+      itemLabel="phần thêm"
       [disabled]="loading"
       (pageChange)="changePage($event)"
       (pageSizeChange)="changePageSize($event)">
@@ -178,26 +171,24 @@
 </section>
 
 <div class="drawer-backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
-<aside class="topping-drawer" [class.open]="drawerOpen" aria-label="Form gắn topping">
+<aside class="topping-drawer" [class.open]="drawerOpen" aria-label="Biểu mẫu thêm lựa chọn cho sản phẩm">
   <form [formGroup]="form" (ngSubmit)="saveProductTopping()">
     <div class="drawer-head">
       <div>
         <span class="eyebrow">{{ selectedProductTopping ? 'Cập nhật' : 'Gắn mới' }}</span>
-        <h2>{{ selectedProductTopping ? selectedProductTopping.toppingName : 'Gắn topping' }}</h2>
+        <h2>{{ selectedProductTopping ? selectedProductTopping.toppingName : 'Gắn phần thêm' }}</h2>
       </div>
       <button id="close-product-topping-drawer-btn" type="button" class="pt-icon-btn" (click)="closeDrawer()">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
 
-    <label>Topping master
-      <select id="assign-topping-select" formControlName="toppingId">
-        <option value="" disabled>Chọn topping</option>
-        <option *ngFor="let topping of availableToppings; trackBy: trackTopping" [ngValue]="topping.id">
-          {{ topping.name }} · {{ formatCurrency(topping.price) }} · {{ topping.groupName || 'Khác' }}
-        </option>
-      </select>
-      <small *ngIf="form.controls.toppingId.touched && form.controls.toppingId.invalid">Vui lòng chọn topping.</small>
+    <label>Danh mục phần thêm
+      <app-combobox inputId="assign-topping-select" formControlName="toppingId" label="Phần thêm" placeholder="Phần thêm">
+        <ng-template comboOption value="" [disabled]="true" label="Chọn phần thêm"></ng-template>
+        <ng-template comboOption *ngFor="let topping of availableToppings; trackBy: trackTopping" [value]="topping.id" label="{{ topping.name }} · {{ formatCurrency(topping.price) }} · {{ topping.groupName || 'Khác' }}"></ng-template>
+      </app-combobox>
+      <small *ngIf="form.controls.toppingId.touched && form.controls.toppingId.invalid">Vui lòng chọn phần thêm.</small>
     </label>
 
     <label>Số lượng tối đa mỗi ly
@@ -208,8 +199,8 @@
     <label class="switch-row">
       <input id="product-topping-default-input" type="checkbox" formControlName="isDefault" />
       <span>
-        <strong>Topping mặc định</strong>
-        <small>Tự tick sẵn khi khách mở sản phẩm.</small>
+        <strong>Phần thêm mặc định</strong>
+        <small>Chọn sẵn khi khách mở sản phẩm.</small>
       </span>
     </label>
 

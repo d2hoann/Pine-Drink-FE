@@ -7,6 +7,7 @@ import { SidebarScrollService } from '../../core/services/sidebar-scroll.service
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { AccessControlService } from '../../core/services/access-control.service';
+import { HR_PAGES, HR_ROOT } from '../../features/attendance-payroll/hr-navigation';
 import { AuthUser } from '../../shared/models/user.model';
 
 interface NavItem {
@@ -18,10 +19,13 @@ interface NavItem {
   roles?: string[];
   badge?: string;
   compact?: boolean;
+  keepHrContext?: boolean;
 }
 
 interface NavSection {
+  id: string;
   title: string;
+  icon?: string;
   items: NavItem[];
 }
 
@@ -34,49 +38,72 @@ export class AdminLayoutComponent implements AfterViewInit {
   @ViewChild('sidebarScrollContainer') private readonly sidebarScrollContainer?: ElementRef<HTMLElement>;
   readonly navSections: NavSection[] = [
     {
+      id: 'overview',
       title: 'Tổng quan',
       items: [
-        { label: 'Delivery Hub', icon: 'local_shipping', route: '/admin/dashboard', roles: ['DELIVERY'] },
-        { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard', roles: ['ADMIN', 'MANAGER'] }
+        { label: 'Bảng giao hàng', icon: 'local_shipping', route: '/admin/dashboard', roles: ['DELIVERY'] },
+        { label: 'Bảng điều khiển', icon: 'dashboard', route: '/admin/dashboard', roles: ['ADMIN', 'MANAGER'] }
       ]
     },
     {
+      id: 'operations',
       title: 'Vận hành',
+      icon: 'storefront',
       items: [
-        { label: 'Orders', icon: 'receipt_long', route: '/admin/orders', roles: ['ADMIN', 'MANAGER', 'DELIVERY'] },
-        { label: 'Chat Realtime', icon: 'forum', route: '/admin/chat-realtime', roles: ['ADMIN', 'MANAGER', 'DELIVERY'] },
-        { label: 'Branches', icon: 'storefront', route: '/admin/branches', permission: 'BRANCH_VIEW' }
+        { label: 'Đơn hàng', icon: 'receipt_long', route: '/admin/orders', roles: ['ADMIN', 'MANAGER', 'DELIVERY'] },
+        { label: 'Trò chuyện trực tuyến', icon: 'forum', route: '/admin/chat-realtime', roles: ['ADMIN', 'MANAGER', 'DELIVERY'] },
+        { label: 'Chi nhánh', icon: 'storefront', route: '/admin/branches', permission: 'BRANCH_VIEW' }
       ]
     },
     {
-      title: 'Menu',
+      id: 'hr',
+      title: 'Nhân sự và tiền lương',
+      icon: 'badge',
+      items: Object.values(HR_PAGES).map(item => ({
+        label: item.label,
+        icon: item.icon,
+        permissions: item.permissions,
+        route: HR_ROOT + '/' + item.path,
+        keepHrContext: true
+      }))
+    },
+    {
+      id: 'menu',
+      title: 'Thực đơn',
+      icon: 'restaurant_menu',
       items: [
-        { label: 'Products', icon: 'local_cafe', route: '/admin/products', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Categories', icon: 'category', route: '/admin/categories', roles: ['ADMIN', 'MANAGER'] }
+        { label: 'Sản phẩm', icon: 'local_cafe', route: '/admin/products', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Danh mục sản phẩm', icon: 'category', route: '/admin/categories', roles: ['ADMIN', 'MANAGER'] }
       ]
     },
     {
+      id: 'product-config',
       title: 'Cấu hình sản phẩm',
+      icon: 'tune',
       items: [
-        { label: 'Variants', icon: 'tune', route: '/admin/products/variants', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Daily Stocks', icon: 'inventory_2', route: '/admin/products/daily-stocks', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Product Toppings', icon: 'icecream', route: '/admin/products/toppings', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Topping Master', icon: 'bakery_dining', route: '/admin/toppings', roles: ['ADMIN', 'MANAGER'] }
+        { label: 'Biến thể sản phẩm', icon: 'tune', route: '/admin/products/variants', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Tồn kho theo ngày', icon: 'inventory_2', route: '/admin/products/daily-stocks', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Phần thêm theo sản phẩm', icon: 'icecream', route: '/admin/products/toppings', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Danh mục phần thêm', icon: 'bakery_dining', route: '/admin/toppings', roles: ['ADMIN', 'MANAGER'] }
       ]
     },
     {
-      title: 'Người dùng & quyền',
+      id: 'access',
+      title: 'Người dùng và quyền',
+      icon: 'manage_accounts',
       items: [
-        { label: 'Customers', icon: 'groups', route: '/admin/customers', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Accounts', icon: 'admin_panel_settings', route: '/admin/accounts', permission: 'ACCOUNT_VIEW' },
-        { label: 'Permissions', icon: 'verified_user', route: '/admin/permissions', permission: 'ROLE_PERMISSION_VIEW' }
+        { label: 'Khách hàng', icon: 'groups', route: '/admin/customers', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Tài khoản', icon: 'admin_panel_settings', route: '/admin/accounts', permission: 'ACCOUNT_VIEW' },
+        { label: 'Phân quyền', icon: 'verified_user', route: '/admin/permissions', permission: 'ROLE_PERMISSION_VIEW' }
       ]
     },
     {
+      id: 'business',
       title: 'Kinh doanh',
+      icon: 'monitoring',
       items: [
-        { label: 'Vouchers', icon: 'confirmation_number', route: '/admin/vouchers', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Reports', icon: 'monitoring', route: '/admin/reports', permission: 'REPORT_VIEW' }
+        { label: 'Mã giảm giá', icon: 'confirmation_number', route: '/admin/vouchers', roles: ['ADMIN', 'MANAGER'] },
+        { label: 'Báo cáo', icon: 'monitoring', route: '/admin/reports', permission: 'REPORT_VIEW' }
       ]
     }
   ];
@@ -89,7 +116,11 @@ export class AdminLayoutComponent implements AfterViewInit {
 
   sidebarOpen = false;
   sidebarCollapsed = false;
+  expandedSectionId: string | null = null;
+  activeSectionId: string | null = null;
   currentUser: AuthUser | null = null;
+  private activePath = '';
+  private activeRoute?: string;
 
   constructor(
     private readonly authService: AuthService,
@@ -98,11 +129,13 @@ export class AdminLayoutComponent implements AfterViewInit {
     private readonly sidebarScrollService: SidebarScrollService
   ) {
     this.currentUser = this.authService.getCurrentUser();
+    this.updateActiveSection();
 
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.currentUser = this.authService.getCurrentUser();
+        this.updateActiveSection();
         this.sidebarOpen = false;
         this.restoreSidebarScroll();
       });
@@ -130,14 +163,50 @@ export class AdminLayoutComponent implements AfterViewInit {
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
+    if (this.sidebarOpen) this.sidebarCollapsed = false;
   }
 
   toggleSidebarCollapse(): void {
     this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
+  toggleSection(sectionId: string): void {
+    this.expandedSectionId = !this.sidebarCollapsed && this.expandedSectionId === sectionId ? null : sectionId;
+    this.sidebarCollapsed = false;
+  }
+
+  trackSection(_: number, section: NavSection): string {
+    return section.id;
+  }
+
   isActive(route: string): boolean {
-    return this.router.url === route || this.router.url.startsWith(`${route}/`);
+    return this.activeRoute === route;
+  }
+
+  private updateActiveSection(): void {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    if (path === this.activePath) return;
+    this.activePath = path;
+
+    const matches = this.visibleNavSections.flatMap(section => section.items
+      .filter(item => path === item.route || path.startsWith(item.route + '/'))
+      .map(item => ({ section, route: item.route })));
+    // Ưu tiên đường dẫn con cụ thể hơn khi nhiều mục cùng khớp.
+    const active = matches.sort((a, b) => b.route.length - a.route.length)[0];
+    this.activeRoute = active?.route;
+    this.activeSectionId = active?.section.id ?? null;
+    this.expandedSectionId = active?.section.icon ? active.section.id : null;
+  }
+
+  hrContextParams(targetRoute: string) {
+    if (!this.router.url.startsWith(HR_ROOT + '/')) return {};
+    const url = this.router.parseUrl(this.router.url);
+    return {
+      branchId: url.queryParams['branchId'],
+      month: url.queryParams['month'],
+      // Chỉ giữ bộ lọc nhân viên khi vẫn ở cùng màn hình.
+      employeeId: this.isActive(targetRoute) ? url.queryParams['employeeId'] : undefined
+    };
   }
 
   onSidebarScroll(event: Event): void {

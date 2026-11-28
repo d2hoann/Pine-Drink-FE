@@ -1,3 +1,4 @@
+import { ApiErrorMessageService } from 'src/app/core/services/api-error-message.service';
 import { Component, OnDestroy, OnInit, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChatRealtimeService } from 'src/app/features/chat-realtime/pages/services/chat-realtime.service';
@@ -45,8 +46,8 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
   showMobileInfo = false;
 
   clientSuggestions = [
-    { label: '🍹 Menu hôm nay', text: 'Chào Pine Drink, cho mình xin menu hôm nay với ạ!' },
-    { label: '🚚 Giao hàng', text: 'Phí ship đến khu vực của mình là bao nhiêu vậy shop?' },
+    { label: '🍹 Thực đơn hôm nay', text: 'Chào Pine Drink, cho mình xin thực đơn hôm nay với ạ!' },
+    { label: '🚚 Giao hàng', text: 'Phí giao hàng đến chỗ mình là bao nhiêu ạ?' },
     { label: '⭐ Khuyến mãi', text: 'Hiện tại chi nhánh mình có chương trình ưu đãi nào không ạ?' },
     { label: '📝 Đơn hàng', text: 'Mình muốn kiểm tra trạng thái đơn hàng vừa đặt.' }
   ];
@@ -62,7 +63,8 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
     private readonly branchService: BranchService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly accessControl: AccessControlService
+    private readonly accessControl: AccessControlService,
+    private readonly apiErrorMessage: ApiErrorMessageService
   ) { }
 
   ngOnInit(): void {
@@ -155,7 +157,7 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
         }
       },
       error: (error) => {
-        this.errorMessage = error?.error?.message || 'Không tải được danh sách phòng chat';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không tải được danh sách cuộc trò chuyện');
         this.loadingRooms = false;
       }
     });
@@ -219,7 +221,7 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
         }
       },
       error: (error) => {
-        this.errorMessage = error?.error?.message || 'Không tạo được phòng chat';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không mở được cuộc trò chuyện');
         this.creatingRoom = false;
       }
     });
@@ -347,7 +349,7 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
         this.shouldScrollToBottom = true;
       },
       error: (error) => {
-        this.errorMessage = error?.error?.message || 'Không tải được tin nhắn';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không tải được tin nhắn');
         this.loadingMessages = false;
       }
     });
@@ -435,12 +437,12 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
 
   private loadBranches(): void {
     this.loadingBranches = true;
-    this.branchService.getActiveBranches(0, 200).subscribe({
-      next: (response) => {
+    this.branchService.getActiveBranchOptions().subscribe({
+      next: (branches) => {
         const allowed = new Set(this.currentUserBranchIds);
         this.branches = (this.isSystemScope || this.isClientChat)
-          ? response.content
-          : response.content.filter((branch) => allowed.has(branch.id));
+          ? branches
+          : branches.filter((branch) => allowed.has(branch.id));
 
         if (!this.branchId && this.branches.length) {
           if (this.isSystemScope && !this.isClientChat) {
@@ -551,9 +553,9 @@ export class ChatRealtimePageComponent implements OnInit, OnDestroy, AfterViewCh
     const type = this.getSenderType(message);
     if (message.senderName) return message.senderName;
     if (type === 'CUSTOMER') return 'Khách';
-    if (type === 'ADMIN') return 'Admin';
-    if (type === 'SYSTEM') return 'System';
-    if (type === 'BOT') return 'Bot';
-    return 'Staff';
+    if (type === 'ADMIN') return 'Quản trị';
+    if (type === 'SYSTEM') return 'Hệ thống';
+    if (type === 'BOT') return 'Trợ lý tự động';
+    return 'Nhân viên';
   }
 }

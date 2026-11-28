@@ -552,41 +552,9 @@ $font-weight-medium: 600;
       letter-spacing: 0.05em;
     }
 
-    .select-wrapper {
-      position: relative;
-      width: 100%;
-
-      select {
-        width: 100%;
-        padding: 0.9rem 2.5rem 0.9rem 1.2rem;
-        border: 1.5px solid $brand-biscuit-border;
-        border-radius: 12px;
-        background: #FCFBF7;
-        color: $brand-pine-dark;
-        font-family: inherit;
-        font-size: 16px;
-        font-weight: 600;
-        outline: none;
-        appearance: none;
-        cursor: pointer;
-        transition: all 0.25s ease;
-
-        &:focus {
-          border-color: $brand-pine-green;
-          background: $brand-card-bg;
-          box-shadow: 0 0 0 4px rgba($brand-pine-green, 0.08);
-        }
-      }
-
-      .select-chevron {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: $brand-sage-grey;
-        pointer-events: none;
-        font-size: 1.5rem;
-      }
+    app-combobox {
+      --combobox-height: 48px;
+      font-size: 16px;
     }
 
     textarea {

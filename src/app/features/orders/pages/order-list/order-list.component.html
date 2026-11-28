@@ -1,4 +1,4 @@
-<div class="pos-container" [class.has-selection]="selectedOrder !== null" [class.timeline-open]="showTimelineDrawer">
+<div class="pos-container" [class.has-selection]="selectedOrder !== null">
   
   <!-- BACKDROP FOR TABLET/DESKTOP TIMELINE DRAWER -->
   <div class="timeline-backdrop" *ngIf="showTimelineDrawer" (click)="toggleTimelineDrawer()"></div>
@@ -12,7 +12,7 @@
         <input type="text" 
                [value]="searchQuery" 
                (input)="onSearch($event)" 
-               placeholder="Search code, customer, phone...">
+               placeholder="Tìm theo mã đơn, tên khách hoặc số điện thoại...">
       </div>
       
       <div class="inbox-date-filter">
@@ -49,11 +49,11 @@
     <div class="inbox-list">
       <div *ngIf="isLoading && orders.length === 0" class="list-state">
         <div class="spinner"></div>
-        <p>Loading orders...</p>
+        <p>Đang tải đơn hàng...</p>
       </div>
       <div *ngIf="!isLoading && orders.length === 0" class="list-state">
         <span class="material-symbols-outlined state-icon">inbox_customize</span>
-        <p>No orders found</p>
+        <p>Không tìm thấy đơn hàng</p>
       </div>
       
       <div *ngFor="let order of paginatedOrders" 
@@ -81,10 +81,10 @@
 
           <!-- Middle row: Customer & Type Badge -->
           <div class="item-row item-customer-row">
-            <span class="item-customer">{{ order.customerName || 'Walk-in Customer' }}</span>
+            <span class="item-customer">{{ order.customerName || 'Khách vãng lai' }}</span>
             <span class="type-badge" [class]="order.type?.toLowerCase() || ''">
               <span class="material-symbols-outlined">{{ getTypeIcon(order.type) }}</span>
-              {{ order.type }}
+              {{ order.type | businessLabel:'fulfillment' }}
             </span>
           </div>
 
@@ -123,8 +123,8 @@
   <main class="col-detail">
     <div *ngIf="!selectedOrder" class="detail-empty-state">
       <span class="material-symbols-outlined">receipt_long</span>
-      <h3>Select an Order</h3>
-      <p>Choose an order from the list to start processing and tracking details.</p>
+      <h3>Chọn một đơn hàng</h3>
+      <p>Chọn đơn hàng từ danh sách để xử lý và theo dõi chi tiết.</p>
     </div>
 
     <div *ngIf="selectedOrder" class="detail-content-wrapper">
@@ -132,21 +132,21 @@
       <header class="detail-header">
         <div class="header-left">
           <!-- Mobile Back Button -->
-          <button class="btn-icon mobile-only" (click)="clearSelection()" title="Back to inbox">
+          <button class="btn-icon mobile-only" (click)="clearSelection()" title="Về danh sách đơn hàng">
             <span class="material-symbols-outlined">arrow_back</span>
           </button>
           
           <div class="order-identity">
             <div class="code-row">
               <h2>{{ selectedOrder.orderCode }}</h2>
-              <button class="btn-icon-small" (click)="copyToClipboard(selectedOrder.orderCode)" title="Copy Code">
+              <button class="btn-icon-small" (click)="copyToClipboard(selectedOrder.orderCode)" title="Sao chép mã">
                 <span class="material-symbols-outlined">content_copy</span>
               </button>
             </div>
             <div class="meta-row">
               <span class="type-badge" [class]="selectedOrder.type?.toLowerCase() || ''">
                 <span class="material-symbols-outlined">{{ getTypeIcon(selectedOrder.type) }}</span>
-                {{ selectedOrder.type }}
+                {{ selectedOrder.type | businessLabel:'fulfillment' }}
               </span>
               <span class="time-meta">Created: {{ selectedOrder.createdAt | date:'medium' }}</span>
             </div>
@@ -154,14 +154,14 @@
         </div>
 
         <div class="header-actions">
-          <button class="btn-icon" (click)="printReceipt(selectedOrder)" title="Print Receipt">
+          <button class="btn-icon" (click)="printReceipt(selectedOrder)" title="In hóa đơn">
             <span class="material-symbols-outlined">print</span>
           </button>
           <!-- Drawer toggle button on tablet/desktop -->
           <button class="btn-icon tablet-desktop-only" 
                   [class.active]="showTimelineDrawer"
                   (click)="toggleTimelineDrawer()" 
-                  title="Toggle Timeline">
+                  title="Mở hoặc thu lịch sử">
             <span class="material-symbols-outlined">history</span>
           </button>
         </div>
@@ -228,7 +228,7 @@
               <span class="info-icon material-symbols-outlined">location_on</span>
               <div class="info-text">
                 <span class="label">Địa chỉ giao hàng</span>
-                <span class="value address-line">{{ selectedOrder.customerAddress || 'N/A' }}</span>
+                <span class="value address-line">{{ selectedOrder.customerAddress || 'Chưa cập nhật' }}</span>
               </div>
             </div>
 
@@ -245,7 +245,7 @@
               <span class="info-icon material-symbols-outlined">call</span>
               <div class="info-text">
                 <span class="label">Số điện thoại</span>
-                <span class="value">{{ selectedOrder.customerPhone || 'N/A' }}</span>
+                <span class="value">{{ selectedOrder.customerPhone || 'Chưa cập nhật' }}</span>
               </div>
             </div>
           </div>
@@ -261,7 +261,7 @@
                 <div class="item-details">
                   <div class="item-name">{{ item.name }}</div>
                   <div class="item-size-variant" *ngIf="item.size || item.variant">
-                    Size: {{ item.size }} <span *ngIf="item.variant">· {{ item.variant }}</span>
+                    Kích cỡ: {{ item.size }} <span *ngIf="item.variant">· {{ item.variant }}</span>
                   </div>
                   <!-- Toppings nested list -->
                   <div class="item-toppings-list" *ngIf="item.toppings && item.toppings.length">
@@ -375,7 +375,7 @@
             <div *ngFor="let step of selectedOrder.timeline" class="mobile-timeline-item">
               <div class="item-circle" [class]="step.status.toLowerCase()"></div>
               <div class="item-info">
-                <div class="status-name">{{ step.status }}</div>
+                <div class="status-name">{{ step.status | businessLabel:'order' }}</div>
                 <div class="status-time">{{ step.time | date:'short' }}</div>
                 <div class="status-note" *ngIf="step.note">{{ step.note }}</div>
               </div>
@@ -389,7 +389,7 @@
         <!-- If order is ended (completed, cancelled, rejected) -->
         <div class="ended-status-msg" *ngIf="selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'CANCELLED' || selectedOrder.status === 'REJECTED'">
           <span class="material-symbols-outlined">info</span>
-          <span>Đơn hàng đã kết thúc với trạng thái: <strong>{{ selectedOrder.status }}</strong></span>
+          <span>Đơn hàng đã kết thúc với trạng thái: <strong>{{ selectedOrder.status | businessLabel:'order' }}</strong></span>
           <button class="btn-print-receipt-secondary" (click)="printReceipt(selectedOrder)">
             <span class="material-symbols-outlined">print</span> In hoá đơn
           </button>
@@ -414,8 +414,8 @@
   <!-- COLUMN 3: ACTIVITY TIMELINE -->
   <aside class="col-timeline" [class.open]="showTimelineDrawer">
     <div class="timeline-header">
-      <h3>Activity Timeline</h3>
-      <button class="btn-icon drawer-close-btn" (click)="toggleTimelineDrawer()" title="Close Timeline">
+      <h3>Lịch sử hoạt động</h3>
+      <button class="btn-icon drawer-close-btn" (click)="toggleTimelineDrawer()" title="Đóng lịch sử">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
@@ -435,7 +435,7 @@
           <!-- Event Content -->
           <div class="timeline-event-content">
             <div class="event-header">
-              <span class="event-title">{{ step.status }}</span>
+              <span class="event-title">{{ step.status | businessLabel:'order' }}</span>
               <span class="event-time">{{ step.time | date:'mediumTime' }}</span>
             </div>
             <div class="event-date">{{ step.time | date:'mediumDate' }}</div>
@@ -445,7 +445,7 @@
       </div>
     </div>
     <div class="timeline-empty" *ngIf="!selectedOrder">
-      <p>No order selected</p>
+      <p>Chưa chọn đơn hàng</p>
     </div>
   </aside>
 </div>

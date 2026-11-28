@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { TokenService } from '../../../../core/services/token.service';
-import { LanguageService, Language } from '../../../../core/services/language.service';
 import { TranslateService } from '@ngx-translate/core';
 import { CustomerAddressService } from 'src/app/features/client/services/customer-address.service';
 import { CustomerAddress } from 'src/app/features/client/models/customer-address.model';
@@ -34,7 +33,6 @@ export class ProfileComponent implements OnInit {
   recentOrders: Order[] = [];
 
   activeTab: 'info' | 'orders' | 'favorites' | 'settings' = 'info';
-  showLanguageSelector: boolean = false;
   showChangePasswordModal: boolean = false;
   showEditProfileModal: boolean = false;
 
@@ -61,7 +59,6 @@ export class ProfileComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
     private readonly fb: FormBuilder,
-    public languageService: LanguageService,
     public translate: TranslateService,
     private readonly addressService: CustomerAddressService,
     private readonly apiErrorMessage: ApiErrorMessageService
@@ -230,8 +227,7 @@ export class ProfileComponent implements OnInit {
       return 'Chưa có dữ liệu';
     }
 
-    const currentLang = this.languageService.getCurrentLanguage();
-    return date.toLocaleDateString(currentLang === 'vi' ? 'vi-VN' : 'en-US');
+    return date.toLocaleDateString('vi-VN');
   }
 
   getStatusText(status: string): string {
@@ -296,7 +292,7 @@ export class ProfileComponent implements OnInit {
       },
       error: (error) => {
         this.updatingProfile = false;
-        this.errorMessage = error?.error?.message || 'Không thể cập nhật thông tin. Vui lòng thử lại.';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không thể cập nhật thông tin. Vui lòng thử lại.');
       }
     });
   }
@@ -332,7 +328,7 @@ export class ProfileComponent implements OnInit {
 
   get passwordActionDescription(): string {
     return this.isGoogleOnlyAccount
-      ? 'Tài khoản Google chưa có mật khẩu cục bộ. Thiết lập để có thể đăng nhập bằng email và mật khẩu.'
+      ? 'Tài khoản Google chưa có mật khẩu cục bộ. Thiết lập để có thể đăng nhập bằng thư điện tử và mật khẩu.'
       : 'Cập nhật mật khẩu đăng nhập cho tài khoản của bạn.';
   }
 
@@ -380,7 +376,7 @@ export class ProfileComponent implements OnInit {
       },
       error: (error) => {
         this.changingPassword = false;
-        this.errorMessage = error?.error?.message || 'Không thể xử lý mật khẩu. Vui lòng kiểm tra lại.';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không thể xử lý mật khẩu. Vui lòng kiểm tra lại.');
       }
     });
   }
@@ -406,14 +402,14 @@ export class ProfileComponent implements OnInit {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       console.error('[Avatar Upload] Invalid file type:', file.type);
-      this.errorMessage = 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP).';
+      this.errorMessage = 'Chỉ chấp nhận tệp ảnh (JPG, PNG, GIF, WEBP).';
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       console.error('[Avatar Upload] File too large:', file.size);
-      this.errorMessage = 'Kích thước file không được vượt quá 5MB.';
+      this.errorMessage = 'Kích thước tệp không được vượt quá 5MB.';
       return;
     }
 
@@ -432,7 +428,7 @@ export class ProfileComponent implements OnInit {
 
         if (!avatarUrl) {
           console.error('[Avatar Upload] Missing fileUrl:', response);
-          this.errorMessage = 'Upload thành công nhưng không nhận được URL ảnh.';
+          this.errorMessage = 'Đã tải ảnh lên nhưng chưa nhận được đường dẫn ảnh.';
           return;
         }
 
@@ -451,11 +447,11 @@ export class ProfileComponent implements OnInit {
         // Enhanced error message
         let errorMsg = 'Không thể tải ảnh lên. ';
         if (error.status === 0) {
-          errorMsg += 'Không thể kết nối đến server. Vui lòng kiểm tra backend đang chạy.';
+          errorMsg += 'Không thể kết nối với hệ thống. Vui lòng thử lại sau.';
         } else if (error.status === 413) {
-          errorMsg += 'File quá lớn.';
+          errorMsg += 'Tệp quá lớn.';
         } else if (error.status === 415) {
-          errorMsg += 'Định dạng file không được hỗ trợ.';
+          errorMsg += 'Định dạng tệp không được hỗ trợ.';
         } else {
           errorMsg += this.apiErrorMessage.resolve(error, 'Vui lòng thử lại.');
         }
@@ -482,24 +478,6 @@ export class ProfileComponent implements OnInit {
 
   onAvatarLoadSuccess(): void {
     console.log('[Avatar] Image loaded successfully:', this.user.avatar);
-  }
-
-  openLanguageSelector(): void {
-    this.showLanguageSelector = true;
-  }
-
-  closeLanguageSelector(): void {
-    this.showLanguageSelector = false;
-  }
-
-  selectLanguage(languageCode: string): void {
-    this.languageService.setLanguage(languageCode);
-    this.closeLanguageSelector();
-  }
-
-  getCurrentLanguageName(): string {
-    const currentLang = this.languageService.getCurrentLanguageInfo();
-    return currentLang ? currentLang.name : 'Tiếng Việt';
   }
 
   logout(): void {

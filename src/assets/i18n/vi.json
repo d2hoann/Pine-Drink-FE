@@ -13,9 +13,9 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Fresh brewed. Fast pickup.",
+      "eyebrow": "Pha chế tươi, nhận món nhanh",
       "title": "Đặt đồ uống yêu thích chỉ trong vài phút",
-      "description": "Chọn món, tùy chỉnh topping, đặt trước và nhận tại cửa hàng gần bạn với trải nghiệm Pine Drink mới.",
+      "description": "Chọn món, tùy chỉnh phần thêm, đặt trước và nhận tại cửa hàng gần bạn với trải nghiệm Pine Drink mới.",
       "orderNow": "Đặt ngay",
       "selectBranch": "Chọn chi nhánh",
       "rating": "đánh giá",
@@ -30,18 +30,18 @@
       "startOrder": "Bắt đầu đặt món"
     },
     "categories": {
-      "eyebrow": "Explore menu",
+      "eyebrow": "Khám phá thực đơn",
       "title": "Danh mục đồ uống",
       "viewAll": "Xem tất cả món",
       "itemsAvailable": "món đang bán"
     },
     "bestSellers": {
-      "eyebrow": "Best sellers",
+      "eyebrow": "Món bán chạy",
       "title": "Món được yêu thích nhất",
       "getPromo": "Lấy ưu đãi"
     },
     "promos": {
-      "eyebrow": "Sip deals",
+      "eyebrow": "Ưu đãi đồ uống",
       "title": "Ưu đãi độc quyền",
       "getOffer": "Nhận ưu đãi"
     },
@@ -49,14 +49,14 @@
       "step1Title": "Chọn chi nhánh",
       "step1Desc": "Tự động gợi ý cửa hàng gần bạn.",
       "step2Title": "Chọn đồ uống",
-      "step2Desc": "Menu đầy đủ với nhiều lựa chọn.",
-      "step3Title": "Tùy chỉnh topping",
-      "step3Desc": "Chọn size, đường, đá và topping.",
+      "step2Desc": "Thực đơn đầy đủ với nhiều lựa chọn.",
+      "step3Title": "Tùy chỉnh phần thêm",
+      "step3Desc": "Chọn kích cỡ, đường, đá và phần thêm.",
       "step4Title": "Nhận hàng",
       "step4Desc": "Theo dõi trạng thái và nhận tại quầy."
     },
     "stores": {
-      "eyebrow": "Nearby stores",
+      "eyebrow": "Cửa hàng gần bạn",
       "title": "Cửa hàng nổi bật",
       "viewAll": "Xem tất cả",
       "orderHere": "Đặt tại chi nhánh này"
@@ -83,13 +83,13 @@
   "product": {
     "detail": "Chi tiết sản phẩm",
     "backButton": "Quay lại",
-    "size": "Chọn size",
+    "size": "Chọn kích cỡ",
     "sizeSmall": "Nhỏ",
     "sizeMedium": "Vừa",
     "sizeLarge": "Lớn",
     "ice": "Lượng đá",
     "sugar": "Lượng đường",
-    "toppings": "Thêm topping",
+    "toppings": "Thêm phần thêm",
     "note": "Ghi chú",
     "notePlaceholder": "Ví dụ: Ít đá, nhiều đường...",
     "optional": "(Tùy chọn)",
@@ -97,7 +97,7 @@
     "total": "Tổng cộng",
     "quantity": "Số lượng",
     "basePrice": "Sản phẩm",
-    "toppingPrice": "Topping",
+    "toppingPrice": "Phần thêm",
     "notFound": "Không tìm thấy sản phẩm"
   },
   "cart": {
@@ -114,7 +114,7 @@
     "voucherPlaceholder": "Nhập mã giảm giá",
     "apply": "Áp dụng",
     "remove": "Xóa",
-    "size": "Size",
+    "size": "Kích cỡ",
     "ice": "Đá",
     "sugar": "Đường",
     "note": "Ghi chú"
@@ -147,7 +147,7 @@
       "title": "Thông tin cá nhân",
       "edit": "Chỉnh sửa",
       "fullName": "Họ và tên",
-      "email": "Email",
+      "email": "Thư điện tử",
       "phone": "Số điện thoại",
       "birthday": "Ngày sinh",
       "noBirthday": "Chưa cập nhật",
@@ -182,7 +182,7 @@
       "title": "Món yêu thích",
       "empty": "Chưa có món yêu thích",
       "emptyDesc": "Thêm các món bạn thích để đặt hàng nhanh hơn",
-      "exploreMenu": "Khám phá menu"
+      "exploreMenu": "Khám phá thực đơn"
     },
     "settings": {
       "title": "Cài đặt tài khoản",
@@ -202,8 +202,8 @@
     "login": {
       "title": "Đăng nhập",
       "subtitle": "Chào mừng trở lại!",
-      "email": "Email",
-      "emailPlaceholder": "Nhập email của bạn",
+      "email": "Thư điện tử",
+      "emailPlaceholder": "Nhập thư điện tử của bạn",
       "password": "Mật khẩu",
       "passwordPlaceholder": "Nhập mật khẩu",
       "rememberMe": "Ghi nhớ đăng nhập",
@@ -217,8 +217,8 @@
       "subtitle": "Tạo tài khoản mới",
       "fullName": "Họ và tên",
       "fullNamePlaceholder": "Nhập họ và tên",
-      "email": "Email",
-      "emailPlaceholder": "Nhập email của bạn",
+      "email": "Thư điện tử",
+      "emailPlaceholder": "Nhập thư điện tử của bạn",
       "phone": "Số điện thoại",
       "phonePlaceholder": "Nhập số điện thoại",
       "password": "Mật khẩu",
@@ -235,9 +235,9 @@
     },
     "forgotPassword": {
       "title": "Quên mật khẩu",
-      "subtitle": "Nhập email để đặt lại mật khẩu",
-      "email": "Email",
-      "emailPlaceholder": "Nhập email của bạn",
+      "subtitle": "Nhập thư điện tử để đặt lại mật khẩu",
+      "email": "Thư điện tử",
+      "emailPlaceholder": "Nhập thư điện tử của bạn",
       "sendButton": "Gửi link đặt lại",
       "backToLogin": "Quay lại đăng nhập"
     }
@@ -282,7 +282,7 @@
   },
   "language": {
     "vietnamese": "Tiếng Việt",
-    "english": "English",
+    "english": "Tiếng Anh",
     "select": "Chọn ngôn ngữ"
   },
   "footer": {

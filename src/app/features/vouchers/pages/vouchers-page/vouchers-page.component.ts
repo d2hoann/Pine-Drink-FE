@@ -20,8 +20,6 @@ export class VouchersPageComponent implements OnInit {
   loading = false;
   loadingDetail = false;
   loadingBranches = false;
-  branchScopeOpen = false;
-  branchKeyword = '';
   saving = false;
   showForm = false;
   editing: VoucherResponse | null = null;
@@ -47,7 +45,7 @@ export class VouchersPageComponent implements OnInit {
     usageLimitPerCustomer: [1],
     startAt: ['', Validators.required],
     endAt: ['', Validators.required],
-    branchIdsText: ['']
+    branchIds: this.fb.nonNullable.control<string[]>([])
   });
 
   constructor(
@@ -79,7 +77,7 @@ export class VouchersPageComponent implements OnInit {
         this.totalPages = res.data.totalPages;
         this.totalElements = res.data.totalElements;
       },
-      error: () => this.toast.error('Không tải được danh sách voucher')
+      error: () => this.toast.error('Không tải được danh sách mã giảm giá')
     });
   }
 
@@ -98,10 +96,8 @@ export class VouchersPageComponent implements OnInit {
       usageLimitPerCustomer: 1,
       startAt: this.toDateTimeLocal(new Date()),
       endAt: this.toDateTimeLocal(new Date(Date.now() + 7 * 86400000)),
-      branchIdsText: ''
+      branchIds: []
     });
-    this.branchKeyword = '';
-    this.branchScopeOpen = false;
   }
 
   openEdit(voucher: VoucherResponse): void {
@@ -125,12 +121,10 @@ export class VouchersPageComponent implements OnInit {
             usageLimitPerCustomer: detail.usageLimitPerCustomer ?? 1,
             startAt: this.toDateTimeLocal(detail.startAt),
             endAt: this.toDateTimeLocal(detail.endAt),
-            branchIdsText: (detail.branchIds || []).join(', ')
+            branchIds: detail.branchIds || []
           });
-          this.branchKeyword = '';
-          this.branchScopeOpen = false;
         },
-        error: () => this.toast.error('Không tải được chi tiết voucher')
+        error: () => this.toast.error('Không tải được chi tiết mã giảm giá')
       });
   }
 
@@ -149,11 +143,11 @@ export class VouchersPageComponent implements OnInit {
 
     request$.pipe(finalize(() => (this.saving = false))).subscribe({
       next: () => {
-        this.toast.success(this.editing ? 'Đã cập nhật voucher' : 'Đã tạo voucher');
+        this.toast.success(this.editing ? 'Đã cập nhật mã giảm giá' : 'Đã tạo mã giảm giá');
         this.showForm = false;
         this.loadVouchers();
       },
-      error: err => this.toast.error(this.apiErrorMessage.resolve(err, 'Lưu voucher thất bại'))
+      error: err => this.toast.error(this.apiErrorMessage.resolve(err, 'Lưu mã giảm giá thất bại'))
     });
   }
 
@@ -162,7 +156,7 @@ export class VouchersPageComponent implements OnInit {
     this.confirmDialog.confirm({
       title: `Xác nhận ${action} voucher?`,
       message: `Bạn chắc muốn ${action} voucher ${voucher.code}?`,
-      confirmText: status === 'ACTIVE' ? 'Bật voucher' : 'Tắt voucher',
+      confirmText: status === 'ACTIVE' ? 'Bật mã giảm giá' : 'Tắt mã giảm giá',
       cancelText: 'Hủy',
       type: status === 'ACTIVE' ? 'success' : 'warning',
       affectedItems: [voucher.name || voucher.code]
@@ -181,10 +175,10 @@ export class VouchersPageComponent implements OnInit {
 
   remove(voucher: VoucherResponse): void {
     this.confirmDialog.confirm({
-      title: 'Xác nhận xóa voucher?',
-      message: `Voucher ${voucher.code} sẽ bị xóa khỏi hệ thống.`,
+      title: 'Xác nhận xóa mã giảm giá?',
+      message: `Mã giảm giá ${voucher.code} sẽ bị xóa khỏi hệ thống.`,
       description: 'Thao tác này không thể hoàn tác.',
-      confirmText: 'Xóa voucher',
+      confirmText: 'Xóa mã giảm giá',
       cancelText: 'Hủy',
       type: 'danger',
       risks: ['Mất cấu hình mã giảm giá', 'Không thể khôi phục sau khi xóa']
@@ -193,10 +187,10 @@ export class VouchersPageComponent implements OnInit {
 
       this.voucherService.delete(voucher.id).subscribe({
         next: () => {
-          this.toast.success('Đã xóa voucher');
+          this.toast.success('Đã xóa mã giảm giá');
           this.loadVouchers();
         },
-        error: () => this.toast.error('Xóa voucher thất bại')
+        error: () => this.toast.error('Xóa mã giảm giá thất bại')
       });
     });
   }
@@ -229,50 +223,20 @@ export class VouchersPageComponent implements OnInit {
       : `${Number(voucher.discountValue).toLocaleString('vi-VN')}đ`;
   }
 
-  isBranchSelected(branchId: string): boolean {
-    return this.selectedBranchIds.includes(branchId);
-  }
-
-  toggleBranch(branchId: string): void {
-    const selected = new Set(this.selectedBranchIds);
-    selected.has(branchId) ? selected.delete(branchId) : selected.add(branchId);
-    this.form.patchValue({ branchIdsText: Array.from(selected).join(', ') });
-  }
-
   clearBranchScope(): void {
-    this.form.patchValue({ branchIdsText: '' });
-  }
-
-  get filteredBranches(): Branch[] {
-    const keyword = this.branchKeyword.trim().toLowerCase();
-    if (!keyword) return this.branches;
-    return this.branches.filter(branch =>
-      [branch.name, branch.code, branch.address]
-        .filter(Boolean)
-        .some(value => value!.toLowerCase().includes(keyword))
-    );
-  }
-
-  get selectedBranchLabels(): string[] {
-    const selected = new Set(this.selectedBranchIds);
-    return this.branches
-      .filter(branch => selected.has(branch.id))
-      .map(branch => branch.name);
+    this.form.controls.branchIds.setValue([]);
   }
 
   get selectedBranchIds(): string[] {
-    return (this.form.controls.branchIdsText.value || '')
-      .split(',')
-      .map(id => id.trim())
-      .filter(Boolean);
+    return this.form.controls.branchIds.value;
   }
 
   private loadBranches(): void {
     this.loadingBranches = true;
-    this.branchService.getActiveBranches(0, 200)
+    this.branchService.getActiveBranchOptions()
       .pipe(finalize(() => (this.loadingBranches = false)))
       .subscribe({
-        next: page => (this.branches = page.content || []),
+        next: branches => (this.branches = branches),
         error: () => this.toast.error('Không tải được danh sách chi nhánh')
       });
   }
@@ -291,7 +255,7 @@ export class VouchersPageComponent implements OnInit {
       usageLimitPerCustomer: raw.usageLimitPerCustomer === null ? null : Number(raw.usageLimitPerCustomer),
       startAt: this.toIsoLocal(raw.startAt!),
       endAt: this.toIsoLocal(raw.endAt!),
-      branchIds: (raw.branchIdsText || '').split(',').map(id => id.trim()).filter(Boolean)
+      branchIds: raw.branchIds
     };
   }
 

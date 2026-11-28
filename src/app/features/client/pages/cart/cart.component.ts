@@ -306,7 +306,7 @@ export class CartComponent implements OnInit {
 
     const normalizedCode = this.voucherCode.trim().toUpperCase();
     if (!normalizedCode) {
-      this.toast.warning('Vui lòng nhập mã voucher');
+      this.toast.warning('Vui lòng nhập mã giảm giá');
       return;
     }
 
@@ -327,7 +327,7 @@ export class CartComponent implements OnInit {
     this.voucherCode = normalizedCode;
     this.discount = 0;
     this.calculateTotal();
-    this.toast.info('Mã voucher sẽ được kiểm tra khi đặt hàng');
+    this.toast.info('Mã giảm giá sẽ được kiểm tra khi đặt hàng');
   }
 
   removeVoucher(): void {

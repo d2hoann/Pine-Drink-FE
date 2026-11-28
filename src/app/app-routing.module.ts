@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { NoPreloading, RouterModule, Routes } from '@angular/router';
 
 import { AuthGuard } from './core/guards/auth.guard';
+import { HR_PERMISSIONS } from './features/attendance-payroll/hr-navigation';
 import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
 import { ClientLayoutComponent } from './layout/client-layout/client-layout.component';
@@ -95,6 +96,12 @@ const routes: Routes = [
         path: 'chat-realtime',
         data: { roles: ['ADMIN', 'MANAGER', 'DELIVERY'] },
         loadChildren: () => import('./features/chat-realtime/chat-realtime.module').then((m) => m.ChatRealtimeModule)
+      },
+      { path: 'attendance-payroll', pathMatch: 'full', redirectTo: 'hr' },
+      {
+        path: 'hr',
+        data: { permissions: HR_PERMISSIONS },
+        loadChildren: () => import('./features/attendance-payroll/hr.routes').then(module => module.HR_ROUTES)
       },
       {
         path: 'reports',

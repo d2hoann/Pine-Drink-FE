@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -22,17 +22,6 @@ declare global {
             ux_mode?: 'popup' | 'redirect';
             context?: 'signin' | 'signup' | 'use';
           }) => void;
-          prompt: (momentListener?: (notification: {
-            isDisplayMoment: () => boolean;
-            isDisplayed: () => boolean;
-            isNotDisplayed: () => boolean;
-            getNotDisplayedReason: () => string;
-            isSkippedMoment: () => boolean;
-            getSkippedReason: () => string;
-            isDismissedMoment: () => boolean;
-            getDismissedReason: () => string;
-            getMomentType: () => string;
-          }) => void) => void;
           renderButton: (
             parent: HTMLElement,
             options: {
@@ -41,6 +30,7 @@ declare global {
               text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
               shape?: 'rectangular' | 'pill' | 'circle' | 'square';
               logo_alignment?: 'left' | 'center';
+              locale?: string;
               width?: number;
             }
           ) => void;
@@ -64,7 +54,12 @@ export class LoginPageComponent implements OnInit, AfterViewInit, OnDestroy {
   submitting = false;
   googleSubmitting = false;
   showPassword = false;
+  private readonly googleClientId = environment.googleClientId.trim();
+  googleMessage = this.googleClientId
+    ? 'Đang tải đăng nhập Google…'
+    : 'Đăng nhập Google chưa được cấu hình.';
 
+  @ViewChild('googleButtonHost', { static: true }) private googleButtonHost!: ElementRef<HTMLDivElement>;
   private googleInitTimerId?: number;
 
   constructor(
@@ -73,7 +68,8 @@ export class LoginPageComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly accessControl: AccessControlService,
     private readonly toastService: ToastService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
@@ -129,21 +125,15 @@ export class LoginPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Only initialize if Google Client ID is configured
-    if (environment.googleClientId) {
+    if (this.googleClientId) {
       this.initGoogleIdentity();
     }
   }
 
   ngOnDestroy(): void {
-    if (this.googleInitTimerId) {
+    if (this.googleInitTimerId !== undefined) {
       window.clearTimeout(this.googleInitTimerId);
     }
-  }
-
-  loginWithGoogle(): void {
-    this.toastService.error('Google Sign-In đang được tải lại. Vui lòng thử lại sau vài giây.');
-    this.initGoogleIdentity();
   }
 
   handleGoogleCredential(response: { credential?: string }): void {
@@ -193,12 +183,8 @@ export class LoginPageComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initGoogleIdentity(retryCount = 0): void {
-    if (!environment.googleClientId) {
-      console.warn('[Google OAuth] Client ID not configured');
-      return;
-    }
-
-    if (!window.google?.accounts?.id) {
+    const googleIdentity = window.google?.accounts?.id;
+    if (!googleIdentity) {
       // Thử lại tối đa 10 lần (tổng 3 giây) để chờ script Google tải xong
       if (retryCount < 10) {
         this.googleInitTimerId = window.setTimeout(
@@ -206,29 +192,24 @@ export class LoginPageComponent implements OnInit, AfterViewInit, OnDestroy {
           300
         );
       } else {
-        console.error('[Google OAuth] Failed to load Google Identity Services after 3 seconds');
+        this.googleMessage = 'Không tải được đăng nhập Google. Hãy tải lại trang.';
       }
       return;
     }
 
-    // Khởi tạo Google Identity Services và render nút Google chính thức.
-    window.google.accounts.id.initialize({
-      client_id: environment.googleClientId,
-      callback: (response) => this.handleGoogleCredential(response)
+    const buttonHost = this.googleButtonHost.nativeElement;
+    googleIdentity.initialize({
+      client_id: this.googleClientId,
+      callback: (response) => this.ngZone.run(() => this.handleGoogleCredential(response))
     });
-
-    const buttonHost = document.getElementById('google-signin-button');
-    if (buttonHost) {
-      buttonHost.innerHTML = '';
-      window.google.accounts.id.renderButton(buttonHost, {
-        theme: 'outline',
-        size: 'large',
-        text: 'continue_with',
-        shape: 'rectangular',
-        logo_alignment: 'left',
-        width: 240
-      });
-    }
+    googleIdentity.renderButton(buttonHost, {
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'rectangular',
+      locale: 'vi',
+      width: Math.min(buttonHost.clientWidth || 240, 400)
+    });
   }
 
   private getRedirectUrlByRole(): string {

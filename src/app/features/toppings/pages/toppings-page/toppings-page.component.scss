@@ -1,3 +1,5 @@
+@use 'centered-popup';
+
 :host {
   display: block;
   color: #17251c;
@@ -521,29 +523,17 @@ table td:last-child {
 }
 
 .drawer {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  bottom: 12px;
+  @include centered-popup.frame(32rem);
+  @include centered-popup.hide-until-open;
   z-index: 60;
-  width: min(440px, calc(100vw - 24px));
   padding: 20px;
   border: 1px solid rgba(20, 83, 45, 0.1);
   border-radius: 28px;
   background: #fff;
   box-shadow: -24px 0 60px rgba(15, 47, 28, 0.18);
-  transform: translateX(calc(100% + 24px));
-  transition: transform 0.24s ease;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.drawer.open {
-  transform: translateX(0);
 }
 
 .drawer form {
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -716,10 +706,6 @@ table td:last-child {
   }
 
   .drawer {
-    top: 8px;
-    right: 8px;
-    bottom: 8px;
-    width: calc(100vw - 16px);
     border-radius: 22px;
   }
 }

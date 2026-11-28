@@ -1,3 +1,5 @@
+@use 'centered-popup';
+
 // POS Theme variables
 $bg-main: #f3f5f6; // Neutral cold light gray background
 $bg-card: #ffffff;
@@ -1836,7 +1838,7 @@ $color-rejected: $status-rejected;
   display: inline-flex;
 }
 
-// 2. Tablet + normal desktop: timeline is a slide-out drawer
+// 2. Tablet + normal desktop: timeline opens as a modal
 @media (min-width: 768px) and (max-width: 1439px) {
   .pos-container {
     .col-inbox {
@@ -1847,25 +1849,16 @@ $color-rejected: $status-rejected;
       flex: 1;
     }
 
-    // Timeline as a slide-out drawer
     .col-timeline {
-      position: fixed;
-      top: 0;
-      right: -320px;
-      width: 320px;
-      height: 100vh;
+      @include centered-popup.frame(34rem);
+      @include centered-popup.hide-until-open;
       z-index: 1000;
-      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid $border-color;
+      border-radius: 1rem;
+      box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.18);
 
       .drawer-close-btn {
         display: inline-flex;
-      }
-    }
-
-    &.timeline-open {
-      .col-timeline {
-        right: 0;
       }
     }
   }

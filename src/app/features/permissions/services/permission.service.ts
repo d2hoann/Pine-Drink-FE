@@ -11,6 +11,7 @@ import {
   RolePermissionMatrix,
   RolePermissionsMatrixApiResponse
 } from '../models/permission.model';
+import { permissionLabel } from './permission-labels';
 
 @Injectable()
 export class PermissionService {
@@ -60,7 +61,7 @@ export class PermissionService {
         map((response) => this.mapMatrix(response.data).find((item) => item.role === role)),
         map((updatedRole) => {
           if (!updatedRole) {
-            throw new Error('Không tìm thấy role sau khi cập nhật.');
+            throw new Error('Không tìm thấy vai trò sau khi cập nhật.');
           }
 
           return updatedRole;
@@ -72,7 +73,7 @@ export class PermissionService {
     return data.roles.map((role) => ({
       role: role.code,
       label: role.name || role.code,
-      description: role.description || 'Chưa có mô tả.',
+      description: this.vietnameseText(role.description),
       roleType: role.roleType,
       status: role.status,
       locked: !role.editable,
@@ -83,12 +84,16 @@ export class PermissionService {
   private mapPermission(permission: PermissionApiResponse): PermissionDefinition {
     return {
       code: permission.code,
-      name: permission.name || permission.code,
-      description: permission.description || 'Chưa có mô tả.',
+      name: permissionLabel(permission.code) ?? this.vietnameseText(permission.name, 'Quyền tùy chỉnh'),
+      description: this.vietnameseText(permission.description),
       module: permission.module || 'General',
       status: permission.status,
       risk: this.resolveRisk(permission.code)
     };
+  }
+
+  private vietnameseText(value?: string | null, fallback = ''): string {
+    return value && /[À-ỹ]/u.test(value) ? value : fallback;
   }
 
   private resolveRisk(code: string): PermissionDefinition['risk'] {

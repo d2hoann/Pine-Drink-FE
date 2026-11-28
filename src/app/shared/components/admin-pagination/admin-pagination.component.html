@@ -9,10 +9,10 @@
 
   <label class="admin-pagination__size" *ngIf="showPageSize">
     <span>Hiển thị</span>
-    <select aria-label="Số dòng mỗi trang" [ngModel]="pageSize" (ngModelChange)="changePageSize($event)"
-      [disabled]="disabled">
-      <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
-    </select>
+    <app-combobox [ngModel]="pageSize" (ngModelChange)="changePageSize($event)"
+      [disabled]="disabled" label="Số dòng mỗi trang" placeholder="Số dòng mỗi trang">
+      <ng-template comboOption *ngFor="let size of pageSizeOptions" [value]="size" label="{{ size }}"></ng-template>
+    </app-combobox>
     <span>/ trang</span>
   </label>
 

@@ -181,8 +181,8 @@ export class CustomersPageComponent implements OnInit {
       ...customer,
       displayName,
       initials: initials || 'KH',
-      displayEmail: customer.email || 'Chưa có email',
-      customerCode: customer.id ? `#${customer.id.slice(0, 8).toUpperCase()}` : '#N/A',
+      displayEmail: customer.email || 'Chưa có thư điện tử',
+      customerCode: customer.id ? `#${customer.id.slice(0, 8).toUpperCase()}` : 'Chưa có mã',
       formattedLastLogin,
       statusLabel: labels[status] || status || 'Chưa rõ',
       statusClass: status.toLowerCase()

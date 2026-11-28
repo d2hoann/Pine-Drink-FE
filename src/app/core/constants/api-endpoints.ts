@@ -77,6 +77,7 @@ export const API_ENDPOINTS = {
     setDefault: (id: string) => `/customer/addresses/${id}/set-default`
   },
   customerCart: '/customer/cart',
+  attendancePayroll: '/attendance-payroll',
   geocoding: {
     search: '/geocoding/search',
     reverse: '/geocoding/reverse'

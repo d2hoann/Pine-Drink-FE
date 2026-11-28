@@ -3,7 +3,7 @@
     <div class="panel-heading">
       <span class="heading-icon material-symbols-outlined">inventory_2</span>
       <div>
-        <p>{{ isEditMode ? 'Product update' : 'New product' }}</p>
+        <p>{{ isEditMode ? 'Cập nhật sản phẩm' : 'Sản phẩm mới' }}</p>
         <h3>{{ isEditMode ? 'Chỉnh thông tin sản phẩm' : 'Thông tin sản phẩm' }}</h3>
       </div>
     </div>
@@ -13,7 +13,7 @@
         <span class="material-symbols-outlined">badge</span>
         <div>
           <h4>Thông tin chính</h4>
-          <p>Tên, danh mục và giá bán hiển thị trên menu. Mã sản phẩm do hệ thống tự sinh.</p>
+          <p>Tên, danh mục và giá bán hiển thị trên thực đơn. Mã sản phẩm do hệ thống tự sinh.</p>
         </div>
       </div>
 
@@ -32,10 +32,10 @@
 
         <label>
           <span>Danh mục</span>
-          <select id="product-category-select" formControlName="categoryId">
-            <option value="">Chọn danh mục</option>
-            <option *ngFor="let category of categories" [value]="category.value">{{ category.label }}</option>
-          </select>
+          <app-combobox inputId="product-category-select" formControlName="categoryId" label="Danh mục" placeholder="Danh mục">
+            <ng-template comboOption value="" label="Chọn danh mục"></ng-template>
+            <ng-template comboOption *ngFor="let category of categories" [value]="category.value" label="{{ category.label }}"></ng-template>
+          </app-combobox>
           <small *ngIf="form.get('categoryId')?.touched && form.get('categoryId')?.invalid">Vui lòng chọn danh mục.</small>
         </label>
       </div>
@@ -58,11 +58,11 @@
 
         <label *ngIf="isEditMode">
           <span>Trạng thái</span>
-          <select id="product-status-select" formControlName="status">
-            <option value="ACTIVE">Đang bán</option>
-            <option value="INACTIVE">Tạm ẩn</option>
-            <option value="OUT_OF_STOCK">Hết hàng</option>
-          </select>
+          <app-combobox inputId="product-status-select" formControlName="status" label="Trạng thái sản phẩm" placeholder="Trạng thái sản phẩm">
+            <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+            <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+            <ng-template comboOption value="OUT_OF_STOCK" label="Hết hàng"></ng-template>
+          </app-combobox>
         </label>
 
         <label>
@@ -81,14 +81,14 @@
           <input id="product-featured-toggle" type="checkbox" formControlName="featured" />
           <span class="toggle-visual material-symbols-outlined">workspace_premium</span>
           <strong>Nổi bật</strong>
-          <em>Đẩy sản phẩm lên khu vực highlight.</em>
+          <em>Hiển thị sản phẩm trong khu vực nổi bật.</em>
         </label>
 
         <label class="toggle-card">
           <input id="product-best-seller-toggle" type="checkbox" formControlName="bestSeller" />
           <span class="toggle-visual material-symbols-outlined">local_fire_department</span>
           <strong>Bán chạy</strong>
-          <em>Gắn nhãn best seller trên menu.</em>
+          <em>Hiển thị nhãn bán chạy trên thực đơn.</em>
         </label>
       </div>
     </div>
@@ -98,7 +98,7 @@
         <span class="material-symbols-outlined">image</span>
         <div>
           <h4>Nội dung hiển thị</h4>
-          <p>Ảnh và mô tả giúp card sản phẩm trông chuyên nghiệp hơn.</p>
+          <p>Ảnh và mô tả giúp thẻ hiển thị sản phẩm trông chuyên nghiệp hơn.</p>
         </div>
       </div>
 
@@ -114,9 +114,9 @@
 
         <div class="upload-controls">
           <div class="upload-copy">
-            <span class="eyebrow">Product media</span>
-            <h5>Upload ảnh sản phẩm</h5>
-            <p>Ảnh vuông hoặc ngang nhẹ giúp card menu sắc nét và chuyên nghiệp hơn.</p>
+            <span class="eyebrow">Hình ảnh sản phẩm</span>
+            <h5>Tải ảnh sản phẩm lên</h5>
+            <p>Ảnh vuông hoặc ngang nhẹ giúp thẻ hiển thị thực đơn sắc nét và chuyên nghiệp hơn.</p>
           </div>
           <label class="upload-button" for="product-image-file-input">
             <span class="material-symbols-outlined">upload</span>
@@ -129,7 +129,7 @@
 
       <label>
         <span>Mô tả</span>
-        <textarea id="product-description-input" rows="5" formControlName="description" placeholder="Mô tả hương vị, size, topping gợi ý..."></textarea>
+        <textarea id="product-description-input" rows="5" formControlName="description" placeholder="Mô tả hương vị, kích cỡ, phần thêm gợi ý..."></textarea>
       </label>
     </div>
 
@@ -147,7 +147,7 @@
   <aside class="editor-panel preview-panel" aria-label="Xem trước sản phẩm">
     <div class="preview-card">
       <div class="preview-media">
-        <img *ngIf="previewSource; else previewIcon" [src]="previewSource" [alt]="form.get('name')?.value || 'Product preview'" />
+        <img *ngIf="previewSource; else previewIcon" [src]="previewSource" [alt]="form.get('name')?.value || 'Xem trước sản phẩm'" />
         <ng-template #previewIcon>
           <div class="preview-mark">
             <span class="material-symbols-outlined">local_cafe</span>
@@ -165,7 +165,7 @@
         <div class="preview-tags">
           <small *ngIf="form.get('preparationMinutes')?.value">{{ form.get('preparationMinutes')?.value }} phút</small>
           <small *ngIf="form.get('featured')?.value">Nổi bật</small>
-          <small *ngIf="form.get('bestSeller')?.value">Best seller</small>
+          <small *ngIf="form.get('bestSeller')?.value">Bán chạy</small>
         </div>
       </div>
     </div>
@@ -174,7 +174,7 @@
       <span class="material-symbols-outlined">tips_and_updates</span>
       <div>
         <h4>Gợi ý nhập nhanh</h4>
-        <p>Mã sản phẩm được backend tự sinh. Mức đá/đường nhập dạng số cách nhau bằng dấu phẩy, ví dụ 0,30,50,70,100.</p>
+        <p>Mã sản phẩm được hệ thống tự sinh. Mức đá/đường nhập dạng số cách nhau bằng dấu phẩy, ví dụ 0,30,50,70,100.</p>
       </div>
     </div>
   </aside>

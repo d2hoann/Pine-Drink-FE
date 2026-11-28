@@ -98,7 +98,7 @@ export class PromotionsComponent implements OnInit {
   copyVoucherCode(voucher: VoucherResponse): void {
     navigator.clipboard.writeText(voucher.code).then(() => {
       this.copiedVoucherId = voucher.id;
-      this.toast.success(`Đã copy mã ${voucher.code}`);
+      this.toast.success(`Đã sao chép mã ${voucher.code}`);
       setTimeout(() => this.copiedVoucherId = null, 2000);
     });
   }
@@ -116,7 +116,7 @@ export class PromotionsComponent implements OnInit {
     switch (voucher.discountType) {
       case 'PERCENTAGE': return `-${voucher.discountValue}%`;
       case 'FIXED_AMOUNT': return `-${this.formatPrice(voucher.discountValue)}`;
-      case 'FREE_SHIPPING': return 'Freeship';
+      case 'FREE_SHIPPING': return 'Miễn phí giao hàng';
       default: return `-${this.formatPrice(voucher.discountValue)}`;
     }
   }

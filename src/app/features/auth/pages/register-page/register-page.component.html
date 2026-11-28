@@ -26,12 +26,12 @@
     </div>
 
     <div class="space-y-xs">
-      <label class="block font-label-lg text-on-surface" for="register-email">Email</label>
+      <label class="block font-label-lg text-on-surface" for="register-email">Thư điện tử</label>
       <div class="relative">
         <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-secondary">mail</span>
         <input id="register-email" type="email" formControlName="email" placeholder="hello@example.com" class="w-full pl-12 pr-md py-sm bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary text-body-md font-body-md transition-all outline-none" />
       </div>
-      <p *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="text-error text-label-sm mt-1">Vui lòng nhập email hợp lệ.</p>
+      <p *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="text-error text-label-sm mt-1">Vui lòng nhập thư điện tử hợp lệ.</p>
     </div>
 
     <div class="space-y-xs">

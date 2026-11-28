@@ -240,8 +240,8 @@ export class ProductDetailComponent implements OnInit {
 
   get productBadge(): string {
     if (!this.product) { return ''; }
-    if (this.selectedDailyStock && this.selectedDailyStock.availableQuantity <= 0) { return 'Hết quota'; }
-    if (this.product.bestSeller) { return 'Best seller'; }
+    if (this.selectedDailyStock && this.selectedDailyStock.availableQuantity <= 0) { return 'Hết hạn mức'; }
+    if (this.product.bestSeller) { return 'Bán chạy'; }
     if (this.product.featured) { return 'Nổi bật'; }
     return '';
   }

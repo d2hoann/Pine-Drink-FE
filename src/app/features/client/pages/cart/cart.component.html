@@ -38,7 +38,7 @@
       <h2>Chưa thể tải giỏ hàng</h2>
       <p>{{ errorMessage }}</p>
       <button class="primary-button" (click)="continueShopping()">
-        Quay lại menu
+        Quay lại thực đơn
       </button>
     </div>
 
@@ -51,7 +51,7 @@
       <h2>Giỏ hàng đang đợi bạn điền đầy</h2>
       <p>Một ly nước ngọt ngào từ Pine Drink sẽ làm ngày mới của bạn tràn đầy năng lượng!</p>
       <button class="primary-button" (click)="continueShopping()">
-        Khám phá menu ngay
+        Khám phá thực đơn ngay
       </button>
     </div>
 
@@ -76,7 +76,7 @@
                 <span *ngIf="item.sugarLevel" class="option-tag sugar-variant">Đường {{ item.sugarLevel }}</span>
               </div>
               <div *ngIf="item.toppings.length > 0" class="item-toppings">
-                <span class="topping-label">Topping:</span>
+                <span class="topping-label">Phần thêm:</span>
                 <span *ngFor="let topping of item.toppings" class="topping-tag">
                   {{ topping.toppingName }} (+{{ formatPrice(topping.price) }})
                 </span>
@@ -122,26 +122,18 @@
         <div class="checkout-options">
           <div class="option-group">
             <label>Hình thức nhận hàng</label>
-            <div class="select-wrapper">
-              <select [(ngModel)]="orderType" (ngModelChange)="onOrderTypeChange()">
-                <option value="DELIVERY">Giao hàng tận nơi</option>
-                <option value="PICKUP">Đến lấy tại quán</option>
-              </select>
-              <span class="material-symbols-outlined select-chevron">expand_more</span>
-            </div>
+            <app-combobox [(ngModel)]="orderType" (ngModelChange)="onOrderTypeChange()" label="Hình thức nhận hàng" placeholder="Hình thức nhận hàng">
+              <ng-template comboOption value="DELIVERY" label="Giao hàng tận nơi"></ng-template>
+              <ng-template comboOption value="PICKUP" label="Đến lấy tại quán"></ng-template>
+            </app-combobox>
           </div>
 
           <div class="option-group" *ngIf="orderType === 'DELIVERY'">
             <label>Địa chỉ giao hàng</label>
-            <div class="select-wrapper">
-              <select [(ngModel)]="selectedAddressId" (ngModelChange)="onAddressChange()">
-                <option value="" disabled>Chọn địa chỉ nhận hàng</option>
-                <option *ngFor="let address of addresses" [value]="address.id">
-                  {{ address.receiverName }} - {{ address.receiverPhone }} - {{ formatAddress(address) }}
-                </option>
-              </select>
-              <span class="material-symbols-outlined select-chevron">expand_more</span>
-            </div>
+            <app-combobox [(ngModel)]="selectedAddressId" (ngModelChange)="onAddressChange()" label="Địa chỉ nhận hàng" placeholder="Địa chỉ nhận hàng">
+              <ng-template comboOption value="" [disabled]="true" label="Chọn địa chỉ nhận hàng"></ng-template>
+              <ng-template comboOption *ngFor="let address of addresses" [value]="address.id" label="{{ address.receiverName }} - {{ address.receiverPhone }} - {{ formatAddress(address) }}"></ng-template>
+            </app-combobox>
 
             <div *ngIf="selectedAddress as address" class="selected-address-card animated-card">
               <div class="address-card-icon">
@@ -200,7 +192,7 @@
                 <strong>{{ branch.name }}</strong>
               </div>
               <div class="delivery-info-row">
-                <span class="info-label">Hotline</span>
+                <span class="info-label">Số hỗ trợ</span>
                 <strong>{{ branch.phone || 'Chưa cập nhật' }}</strong>
               </div>
               <div class="delivery-info-row">
@@ -356,7 +348,7 @@
             <strong>{{ formatPrice(shippingFee) }}</strong>
           </div>
           <div *ngIf="discount > 0" class="summary-row discount">
-            <span>Ưu đãi voucher</span>
+            <span>Ưu đãi mã giảm giá</span>
             <strong>-{{ formatPrice(discount) }}</strong>
           </div>
           

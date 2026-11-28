@@ -1,10 +1,10 @@
-<app-page-header title="Customers" description="Quản lý khách hàng và trạng thái tài khoản.">
+<app-page-header title="Khách hàng" description="Quản lý khách hàng và trạng thái tài khoản.">
 </app-page-header>
 
-<section class="customer-toolbar" aria-label="Customer tools">
+<section class="customer-toolbar" aria-label="Công cụ quản lý khách hàng">
   <label class="search-box" for="customer-search">
     <span class="material-symbols-outlined">search</span>
-    <input id="customer-search" type="search" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Tìm theo tên, username, email hoặc mã khách...">
+    <input id="customer-search" type="search" [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Tìm theo tên, tên đăng nhập, thư điện tử hoặc mã khách...">
   </label>
   <button type="button" class="toolbar-action" (click)="onSearch()">
     <span class="material-symbols-outlined">manage_search</span>
@@ -14,16 +14,16 @@
     <span class="material-symbols-outlined">refresh</span>
     Làm mới
   </button>
-  <div class="status-filter" aria-label="Customer status filter">
+  <div class="status-filter" aria-label="Lọc trạng thái khách hàng">
     <button
       *ngFor="let status of statuses"
       type="button"
       [class.active]="selectedStatus === status"
       (click)="filterByStatus(status)">
-      {{ status }}
+      {{ status | businessLabel:'account' }}
     </button>
   </div>
-  <div class="toolbar-summary" aria-label="Customer overview">
+  <div class="toolbar-summary" aria-label="Tổng quan khách hàng">
     <span class="material-symbols-outlined">insights</span>
     <strong>{{ customers.length }}</strong> khách hàng
     <span class="dot"></span>
@@ -38,8 +38,8 @@
 <section class="customer-table-card">
   <div class="table-head">
     <div>Khách hàng</div>
-    <div>Username</div>
-    <div>Email</div>
+    <div>Tên đăng nhập</div>
+    <div>Thư điện tử</div>
     <div>Mã khách</div>
     <div>Lần đăng nhập</div>
     <div>Trạng thái</div>
@@ -51,7 +51,7 @@
       <div class="avatar">{{ customer.initials }}</div>
       <div>
         <h3>{{ customer.displayName }}</h3>
-        <p>{{ customer.roleCode || 'CUSTOMER' }}</p>
+        <p>{{ (customer.roleCode || 'CUSTOMER') | businessLabel:'role' }}</p>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
     <div class="data-cell email">{{ customer.displayEmail }}</div>
     <div class="data-cell code">{{ customer.customerCode }}</div>
     <div class="data-cell muted">{{ customer.formattedLastLogin }}</div>
-    <em [class]="customer.statusClass">{{ customer.statusLabel }}</em>
+    <em [class]="customer.statusClass">{{ customer.statusLabel | businessLabel:'account' }}</em>
 
     <button type="button" class="icon-action" (click)="toggleCustomerLock(customer)" [attr.aria-label]="customer.status === 'LOCKED' ? 'Mở khóa khách hàng' : 'Khóa khách hàng'">
       <span class="material-symbols-outlined">{{ customer.status === 'LOCKED' ? 'lock_open' : 'lock' }}</span>

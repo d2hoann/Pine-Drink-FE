@@ -33,7 +33,7 @@
         <div class="detail-row" *ngIf="paymentMethod">
           <span class="detail-label">Phương thức</span>
           <span class="detail-value">
-            <span class="payment-badge">{{ paymentMethod }}</span>
+            <span class="payment-badge">{{ paymentMethod | businessLabel:'paymentMethod' }}</span>
           </span>
         </div>
       </div>
@@ -100,7 +100,7 @@
       <!-- Note -->
       <div class="info-note error-note">
         <span class="note-icon">⚠️</span>
-        <span>Nếu bạn gặp vấn đề, vui lòng liên hệ hotline: <strong>1900-xxxx</strong></span>
+        <span>Nếu bạn gặp vấn đề, vui lòng liên hệ số hỗ trợ: <strong>1900-xxxx</strong></span>
       </div>
     </div>
   </div>

@@ -237,7 +237,7 @@ export class CategoriesPageComponent implements OnInit {
         error: () => {
           this.pageData = this.createEmptyPage(page);
           this.categories = [];
-          this.errorMessage = 'Không tải được danh mục từ server. Vui lòng kiểm tra backend hoặc quyền truy cập.';
+          this.errorMessage = 'Không tải được danh mục. Vui lòng kiểm tra quyền truy cập hoặc thử lại.';
         }
       });
   }

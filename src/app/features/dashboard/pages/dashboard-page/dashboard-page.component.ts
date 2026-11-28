@@ -224,7 +224,7 @@ export class DashboardPageComponent implements OnInit {
       .subscribe({
         next: (data) => this.applyDashboardData(data),
         error: () => {
-          this.errorMessage = 'Không tải được dữ liệu dashboard. Kiểm tra backend hoặc quyền REPORT_VIEW.';
+          this.errorMessage = 'Không tải được bảng điều khiển. Vui lòng kiểm tra quyền xem báo cáo hoặc thử lại.';
           this.applyDashboardData({
             overview: this.overview,
             revenueTrend: [],

@@ -2,9 +2,9 @@
   <div class="top-row">
     <header class="page-header">
       <div class="title-block">
-        <span class="eyebrow">Admin Catalog</span>
+        <span class="eyebrow">Danh mục quản trị</span>
         <h1>Sản phẩm</h1>
-        <p>Quản lý menu, giá bán và trạng thái hiển thị.</p>
+        <p>Quản lý thực đơn, giá bán và trạng thái hiển thị.</p>
       </div>
 
       <div class="header-actions">
@@ -39,9 +39,9 @@
   <form [formGroup]="filterForm" (ngSubmit)="search()" class="filter-card toolbar-row">
     <!-- <label class="branch-select compact" *ngIf="branches.length" for="admin-branch-availability-select">
       <span>Chi nhánh</span>
-      <select id="admin-branch-availability-select" [ngModel]="selectedBranchId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onBranchChanged($event)">
-        <option *ngFor="let branch of branches" [ngValue]="branch.id">{{ branch.name }}</option>
-      </select>
+      <app-combobox inputId="admin-branch-availability-select" [ngModel]="selectedBranchId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onBranchChanged($event)" label="Chi nhánh" placeholder="Chi nhánh">
+        <ng-template comboOption *ngFor="let branch of branches" [value]="branch.id" label="{{ branch.name }}" [keywords]="branch.code || ''"></ng-template>
+      </app-combobox>
     </label> -->
 
     <label class="search-field" for="product-keyword-input">
@@ -50,24 +50,24 @@
     </label>
 
     <label class="select-field" for="product-category-filter">
-      <select id="product-category-filter" formControlName="categoryId" aria-label="Lọc danh mục">
-        <option value="">Tất cả danh mục</option>
-        <option *ngFor="let category of categoryOptions" [value]="category.value">{{ category.label }}</option>
-      </select>
+      <app-combobox inputId="product-category-filter" formControlName="categoryId" label="Lọc danh mục" placeholder="Lọc danh mục">
+        <ng-template comboOption value="" label="Tất cả danh mục"></ng-template>
+        <ng-template comboOption *ngFor="let category of categoryOptions" [value]="category.value" label="{{ category.label }}"></ng-template>
+      </app-combobox>
     </label>
 
     <label class="select-field" for="product-status-filter">
-      <select id="product-status-filter" formControlName="status" aria-label="Lọc trạng thái">
-        <option value="">Tất cả trạng thái</option>
-        <option *ngFor="let status of statusOptions" [value]="status.value">{{ status.label }}</option>
-      </select>
+      <app-combobox inputId="product-status-filter" formControlName="status" label="Lọc trạng thái" placeholder="Lọc trạng thái">
+        <ng-template comboOption value="" label="Tất cả trạng thái"></ng-template>
+        <ng-template comboOption *ngFor="let status of statusOptions" [value]="status.value" label="{{ status.label }}"></ng-template>
+      </app-combobox>
     </label>
 
     <button id="search-products-button" type="submit" class="btn filter" [disabled]="loading">
       <span class="material-symbols-outlined">tune</span>
       Lọc
     </button>
-    <button id="reset-products-button" type="button" class="btn reset" (click)="reset()" [disabled]="loading">Reset</button>
+    <button id="reset-products-button" type="button" class="btn reset" (click)="reset()" [disabled]="loading">Đặt lại</button>
   </form>
 </section>
 
@@ -198,7 +198,7 @@
 </section>
 
 <ng-template #productsEmpty>
-  <app-empty-state *ngIf="!loading" title="Chưa có sản phẩm phù hợp" description="Hãy thêm sản phẩm mới hoặc điều chỉnh bộ lọc để xem dữ liệu từ server."></app-empty-state>
+  <app-empty-state *ngIf="!loading" title="Chưa có sản phẩm phù hợp" description="Hãy thêm sản phẩm mới hoặc điều chỉnh bộ lọc để xem dữ liệu từ máy chủ."></app-empty-state>
 </ng-template>
 
 <app-admin-pagination
@@ -218,8 +218,8 @@
 <aside class="product-detail-drawer" *ngIf="detailLoading || detailErrorMessage || selectedProduct" aria-label="Chi tiết sản phẩm">
   <div class="drawer-loading" *ngIf="detailLoading">
     <span class="material-symbols-outlined spin">progress_activity</span>
-    <strong>Đang gọi API chi tiết...</strong>
-    <p>GET /api/v1/products/{{ selectedProduct?.id || '...' }}</p>
+    <strong>Đang tải thông tin chi tiết...</strong>
+    <p>Mã sản phẩm: {{ selectedProduct?.id || '...' }}</p>
   </div>
 
   <div class="drawer-error" *ngIf="!detailLoading && detailErrorMessage">
@@ -237,7 +237,7 @@
         <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name" />
         <span *ngIf="!product.imageUrl" class="material-symbols-outlined">local_cafe</span>
       </div>
-      <span class="eyebrow">Product detail</span>
+      <span class="eyebrow">Chi tiết sản phẩm</span>
       <h2>{{ product.name }}</h2>
       <p>{{ product.description || 'Chưa có mô tả cho sản phẩm này.' }}</p>
       <div class="drawer-badges">
@@ -268,11 +268,11 @@
       </div>
       <div>
         <span>Đá</span>
-        <strong>{{ product.availableIceLevels || 'Chưa set' }}</strong>
+        <strong>{{ product.availableIceLevels || 'Chưa thiết lập' }}</strong>
       </div>
       <div>
         <span>Đường</span>
-        <strong>{{ product.availableSugarLevels || 'Chưa set' }}</strong>
+        <strong>{{ product.availableSugarLevels || 'Chưa thiết lập' }}</strong>
       </div>
       <div>
         <span>Nổi bật</span>

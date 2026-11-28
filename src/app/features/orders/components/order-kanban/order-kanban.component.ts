@@ -13,9 +13,9 @@ export class OrderKanbanComponent {
 
   columns: { label: string; status: OrderStatus }[] = [
     { label: 'PENDING', status: 'PENDING' },
-    { label: 'Confirmed', status: 'CONFIRMED' },
-    { label: 'Preparing', status: 'PREPARING' },
-    { label: 'Ready', status: 'READY' }
+    { label: 'Đã xác nhận', status: 'CONFIRMED' },
+    { label: 'Đang pha chế', status: 'PREPARING' },
+    { label: 'Đã chuẩn bị', status: 'READY' }
   ];
 
   getOrdersByStatus(status: OrderStatus): Order[] {

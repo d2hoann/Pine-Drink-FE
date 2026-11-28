@@ -55,23 +55,18 @@ export class StoreLocatorComponent implements OnInit {
       zoomControl: false
     });
 
+    const streetTiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
     this.tileLayers = {
-      street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
-      }),
+      street: streetTiles,
       satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
         attribution: 'Tiles © Esri'
       }),
-      light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        attribution: '© OpenStreetMap © CARTO'
-      }),
-      dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 20,
-        attribution: '© OpenStreetMap © CARTO'
-      })
+      light: streetTiles,
+      dark: streetTiles
     };
 
     this.tileLayers[this.activeMapMode].addTo(this.map);
@@ -302,8 +297,12 @@ export class StoreLocatorComponent implements OnInit {
   setMapMode(mode: 'street' | 'satellite' | 'light' | 'dark'): void {
     if (!this.map || this.activeMapMode === mode) { return; }
 
-    Object.values(this.tileLayers).forEach(layer => this.map.removeLayer(layer));
-    this.tileLayers[mode].addTo(this.map);
+    const currentLayer = this.tileLayers[this.activeMapMode];
+    const nextLayer = this.tileLayers[mode];
+    if (currentLayer !== nextLayer) {
+      currentLayer.removeFrom(this.map);
+      nextLayer.addTo(this.map);
+    }
     this.activeMapMode = mode;
   }
 

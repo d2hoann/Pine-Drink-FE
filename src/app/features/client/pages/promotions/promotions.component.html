@@ -1,9 +1,9 @@
 <div class="promotions-page">
   <section class="promo-header">
     <div>
-      <span class="eyebrow">Pine Drink rewards</span>
+      <span class="eyebrow">Ưu đãi Pine Drink</span>
       <h1>Ưu đãi độc quyền</h1>
-      <p>Lưu voucher và áp dụng khi đặt đồ uống tại Pine Drink.</p>
+      <p>Lưu mã giảm giá và áp dụng khi đặt đồ uống tại Pine Drink.</p>
     </div>
     <div class="promo-summary">
       <strong>{{ allVouchers.length }}</strong>
@@ -16,7 +16,7 @@
       <span class="material-symbols-outlined">apps</span>Tất cả
     </button>
     <button type="button" [class.active]="selectedFilter === 'shipping'" (click)="filterVouchers('shipping')">
-      <span class="material-symbols-outlined">local_shipping</span>Freeship
+      <span class="material-symbols-outlined">local_shipping</span>Miễn phí giao hàng
     </button>
     <button type="button" [class.active]="selectedFilter === 'percentage'" (click)="filterVouchers('percentage')">
       <span class="material-symbols-outlined">percent</span>Giảm giá
@@ -31,7 +31,7 @@
 
   <div class="toast-copy" *ngIf="copiedVoucherId">
     <span class="material-symbols-outlined">check_circle</span>
-    Đã copy mã voucher
+    Đã sao chép mã
   </div>
 
   <section class="voucher-skeleton-grid" *ngIf="loading" aria-label="Đang tải ưu đãi">
@@ -78,7 +78,7 @@
       <div class="voucher-actions">
         <button type="button" class="secondary-btn" (click)="copyVoucherCode(voucher)">
           <span class="material-symbols-outlined">content_copy</span>
-          Copy mã
+          Sao chép mã
         </button>
         <button type="button" class="primary-btn" (click)="isSaved(voucher) ? copyVoucherCode(voucher) : saveVoucher(voucher)">
           <span class="material-symbols-outlined">{{ isSaved(voucher) ? 'shopping_cart' : 'bookmark_add' }}</span>
@@ -91,6 +91,6 @@
   <div class="empty-state" *ngIf="!loading && filteredVouchers.length === 0">
     <span class="material-symbols-outlined">local_offer</span>
     <h3>Chưa có ưu đãi phù hợp</h3>
-    <p>Thử chọn bộ lọc khác hoặc quay lại sau để nhận voucher mới.</p>
+    <p>Thử chọn bộ lọc khác hoặc quay lại sau để nhận ưu đãi mới.</p>
   </div>
 </div>

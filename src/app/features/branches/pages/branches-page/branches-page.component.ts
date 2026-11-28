@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 
 import { PageResponse } from '../../../../shared/models/page-response.model';
@@ -83,10 +84,14 @@ export class BranchesPageComponent implements OnInit {
     private readonly formBuilder: FormBuilder,
     private readonly branchService: BranchService,
     public readonly accessControl: AccessControlService,
-    private readonly confirmDialog: ConfirmDialogService
+    private readonly confirmDialog: ConfirmDialogService,
+    private readonly route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('create') === '1') {
+      this.openCreateForm();
+    }
     this.loadBranches();
   }
 

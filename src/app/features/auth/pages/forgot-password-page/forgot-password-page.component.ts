@@ -1,3 +1,4 @@
+import { ApiErrorMessageService } from '../../../../core/services/api-error-message.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,7 +22,8 @@ export class ForgotPasswordPageComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly apiErrorMessage: ApiErrorMessageService
   ) {}
 
   ngOnInit(): void {
@@ -48,11 +50,11 @@ export class ForgotPasswordPageComponent implements OnInit {
       next: () => {
         this.submitting = false;
         this.otpSent = true;
-        this.successMessage = 'Mã OTP đặt lại mật khẩu đã được gửi tới email của bạn.';
+        this.successMessage = 'Mã OTP đặt lại mật khẩu đã được gửi tới thư điện tử của bạn.';
       },
       error: (error) => {
         this.submitting = false;
-        this.errorMessage = error?.error?.message || 'Không thể gửi OTP. Vui lòng kiểm tra email và thử lại.';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'Không thể gửi OTP. Vui lòng kiểm tra thư điện tử và thử lại.');
       }
     });
   }
@@ -75,7 +77,7 @@ export class ForgotPasswordPageComponent implements OnInit {
       },
       error: (error) => {
         this.verifying = false;
-        this.errorMessage = error?.error?.message || 'OTP không hợp lệ hoặc đã hết hạn.';
+        this.errorMessage = this.apiErrorMessage.resolve(error, 'OTP không hợp lệ hoặc đã hết hạn.');
       }
     });
   }

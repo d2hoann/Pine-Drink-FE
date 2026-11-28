@@ -11,6 +11,9 @@ import { PageHeaderComponent } from './components/page-header/page-header.compon
 import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { MapPickerComponent } from '../features/client/pages/address-form/map-picker.component';
+import { BusinessLabelPipe } from './pipes/business-label.pipe';
+import { ComboboxComponent } from './components/combobox/combobox.component';
+import { ComboboxOptionDirective } from './components/combobox/combobox-option.directive';
 
 @NgModule({
   declarations: [
@@ -22,7 +25,10 @@ import { MapPickerComponent } from '../features/client/pages/address-form/map-pi
     MapPickerComponent,
     ConfirmDialogComponent
   ],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, TranslateModule],
+  imports: [
+    CommonModule, FormsModule, ReactiveFormsModule, RouterModule, TranslateModule,
+    BusinessLabelPipe, ComboboxComponent, ComboboxOptionDirective
+  ],
   exports: [
     CommonModule,
     FormsModule,
@@ -34,7 +40,10 @@ import { MapPickerComponent } from '../features/client/pages/address-form/map-pi
     EmptyStateComponent,
     AdminPaginationComponent,
     MapPickerComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    BusinessLabelPipe,
+    ComboboxComponent,
+    ComboboxOptionDirective
   ]
 })
 export class SharedModule {}

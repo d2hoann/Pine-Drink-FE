@@ -42,7 +42,7 @@
         (click)="toggleFilter('pickup')"
       >
         <span class="material-symbols-outlined">shopping_bag</span>
-        Có pickup
+        Có nhận tại quầy
       </button>
       <button 
         type="button" 
@@ -50,7 +50,7 @@
         (click)="toggleFilter('delivery')"
       >
         <span class="material-symbols-outlined">local_shipping</span>
-        Có delivery
+        Có giao hàng
       </button>
     </div>
 
@@ -80,7 +80,7 @@
             <span class="status-badge" [class]="getStatusClass(branch)">
               {{ getStatusText(branch) }}
             </span>
-            <button type="button" class="branch-chat-btn" (click)="openBranchChat(branch, $event)" aria-label="Chat với chi nhánh">
+            <button type="button" class="branch-chat-btn" (click)="openBranchChat(branch, $event)" aria-label="Trò chuyện với chi nhánh">
               <span class="material-symbols-outlined">support_agent</span>
             </button>
           </div>
@@ -108,11 +108,11 @@
         <div class="branch-services">
           <span *ngIf="branch.supportsPickup" class="service-tag">
             <span class="material-symbols-outlined">shopping_bag</span>
-            Pickup
+            Nhận tại quầy
           </span>
           <span *ngIf="branch.supportsDelivery" class="service-tag">
             <span class="material-symbols-outlined">local_shipping</span>
-            Delivery
+            Giao hàng
           </span>
           <span class="service-tag time">
             <span class="material-symbols-outlined">timer</span>
@@ -201,7 +201,12 @@
         </button>
       </div>
 
-      <div id="store-locator-map" class="interactive-map"></div>
+      <div
+        id="store-locator-map"
+        class="interactive-map"
+        [class.map-tiles-light]="activeMapMode === 'light'"
+        [class.map-tiles-dark]="activeMapMode === 'dark'"
+      ></div>
     </div>
   </div>
 </div>

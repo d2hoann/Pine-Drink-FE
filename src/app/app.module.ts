@@ -1,4 +1,6 @@
-import { NgModule } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeVi from '@angular/common/locales/vi';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -11,6 +13,8 @@ import { AppComponent } from './app.component';
 import { CoreModule } from './core/core.module';
 import { LayoutModule } from './layout/layout.module';
 import { SharedModule } from './shared/shared.module';
+
+registerLocaleData(localeVi, 'vi-VN');
 
 // HttpLoader factory for ngx-translate
 export function HttpLoaderFactory(http: HttpClient) {
@@ -36,6 +40,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     LayoutModule,
     AppRoutingModule
   ],
+  providers: [{ provide: LOCALE_ID, useValue: 'vi-VN' }],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -29,7 +29,7 @@
             <img 
               *ngIf="user.avatar" 
               [src]="user.avatar" 
-              alt="Avatar" 
+              alt="Ảnh đại diện"
               class="cursor-pointer"
               (click)="showAvatarPreview = true"
               (error)="onAvatarLoadError()"
@@ -245,15 +245,6 @@
             <span class="material-symbols-outlined chevron">chevron_right</span>
           </div>
 
-          <div class="setting-item" (click)="openLanguageSelector()">
-            <div class="setting-icon"><span class="material-symbols-outlined">language</span></div>
-            <div class="setting-content">
-              <h3>{{ 'profile.settings.language' | translate }}</h3>
-              <p>{{ getCurrentLanguageName() }}</p>
-            </div>
-            <span class="material-symbols-outlined chevron">chevron_right</span>
-          </div>
-
           <div class="setting-item danger" (click)="logout()">
             <div class="setting-icon"><span class="material-symbols-outlined">logout</span></div>
             <div class="setting-content">
@@ -270,36 +261,6 @@
 
   <!-- Modals -->
   
-  <!-- Language Selector Modal -->
-  <div class="modal-overlay" *ngIf="showLanguageSelector" (click)="closeLanguageSelector()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ 'language.select' | translate }}</h3>
-        <button type="button" class="close-btn" (click)="closeLanguageSelector()">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <div class="modal-body flex flex-col gap-2">
-        <button
-          *ngFor="let lang of languageService.availableLanguages"
-          type="button"
-          class="flex items-center justify-between p-3 rounded-xl border border-gray-200 hover:bg-gray-50"
-          [class.border-green-600]="languageService.getCurrentLanguage() === lang.code"
-          [class.bg-green-50]="languageService.getCurrentLanguage() === lang.code"
-          (click)="selectLanguage(lang.code)"
-        >
-          <div class="flex items-center gap-3">
-            <span class="text-xl">{{ lang.flag }}</span>
-            <span class="font-medium">{{ lang.name }}</span>
-          </div>
-          <span class="material-symbols-outlined text-green-600" *ngIf="languageService.getCurrentLanguage() === lang.code">
-            check_circle
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Change Password Modal -->
   <div class="modal-overlay" *ngIf="showChangePasswordModal" (click)="closeChangePasswordModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">

@@ -41,7 +41,6 @@ export class ProductToppingsPageComponent implements OnInit {
   drawerOpen = false;
   errorMessage = '';
   searchTerm = '';
-  productSearchTerm = '';
   statusFilter: 'ALL' | 'ACTIVE' | 'INACTIVE' = 'ALL';
 
   constructor(
@@ -59,14 +58,6 @@ export class ProductToppingsPageComponent implements OnInit {
 
   get selectedProduct(): ProductSummary | undefined {
     return this.products.find((product) => product.id === this.selectedProductId);
-  }
-
-  get filteredProducts(): ProductSummary[] {
-    const keyword = this.productSearchTerm.trim().toLowerCase();
-    if (!keyword) { return this.products; }
-
-    return this.products.filter((product) => [product.name, product.code, product.categoryName]
-      .some((value) => (value || '').toLowerCase().includes(keyword)));
   }
 
   get assignedToppingIds(): Set<string> {
@@ -104,7 +95,7 @@ export class ProductToppingsPageComponent implements OnInit {
 
   openCreateDrawer(): void {
     if (!this.selectedProductId) {
-      this.errorMessage = 'Vui lòng chọn sản phẩm trước khi gắn topping.';
+      this.errorMessage = 'Vui lòng chọn sản phẩm trước khi gắn phần thêm.';
       return;
     }
 
@@ -129,7 +120,7 @@ export class ProductToppingsPageComponent implements OnInit {
           this.drawerOpen = true;
         },
         error: () => {
-          this.errorMessage = 'Không tải được chi tiết topping của sản phẩm.';
+          this.errorMessage = 'Không tải được chi tiết phần thêm của sản phẩm.';
         }
       });
   }
@@ -167,7 +158,7 @@ export class ProductToppingsPageComponent implements OnInit {
           this.loadProductToppings(this.pageData.page);
         },
         error: () => {
-          this.errorMessage = 'Không lưu được topping cho sản phẩm. Vui lòng kiểm tra dữ liệu hoặc quyền thao tác.';
+          this.errorMessage = 'Không lưu được phần thêm cho sản phẩm. Vui lòng kiểm tra dữ liệu hoặc quyền thao tác.';
         }
       });
   }
@@ -183,7 +174,7 @@ export class ProductToppingsPageComponent implements OnInit {
       .subscribe({
         next: () => this.loadProductToppings(this.pageData.page),
         error: () => {
-          this.errorMessage = 'Không đổi được trạng thái topping của sản phẩm.';
+          this.errorMessage = 'Không đổi được trạng thái phần thêm của sản phẩm.';
         }
       });
   }
@@ -192,9 +183,9 @@ export class ProductToppingsPageComponent implements OnInit {
     if (!this.selectedProductId) { return; }
 
     this.confirmDialog.confirm({
-      title: 'Xác nhận gỡ topping?',
-      message: `Topping ${item.toppingName} sẽ được gỡ khỏi sản phẩm.`,
-      confirmText: 'Gỡ topping',
+      title: 'Xác nhận gỡ phần thêm?',
+      message: `Phần thêm ${item.toppingName} sẽ được gỡ khỏi sản phẩm.`,
+      confirmText: 'Gỡ phần thêm',
       cancelText: 'Hủy',
       type: 'warning',
       affectedItems: [item.toppingName]
@@ -209,7 +200,7 @@ export class ProductToppingsPageComponent implements OnInit {
         .subscribe({
           next: () => this.loadProductToppings(this.pageData.page),
           error: () => {
-            this.errorMessage = 'Không gỡ được topping khỏi sản phẩm.';
+            this.errorMessage = 'Không gỡ được phần thêm khỏi sản phẩm.';
           }
         });
     });
@@ -244,11 +235,11 @@ export class ProductToppingsPageComponent implements OnInit {
 
   private loadProducts(): void {
     this.productLoading = true;
-    this.productService.getProductSummaries(0, 100)
+    this.productService.getProductOptions()
       .pipe(finalize(() => (this.productLoading = false)))
       .subscribe({
-        next: (pageResponse) => {
-          this.products = pageResponse.content || [];
+        next: (products) => {
+          this.products = products;
           this.selectedProductId = this.selectedProductId || this.products[0]?.id || '';
           if (this.selectedProductId) { this.loadProductToppings(0); }
         },
@@ -267,7 +258,7 @@ export class ProductToppingsPageComponent implements OnInit {
         next: (toppings) => (this.toppings = toppings),
         error: () => {
           this.toppings = [];
-          this.errorMessage = 'Không tải được kho topping active.';
+          this.errorMessage = 'Không tải được danh sách phần thêm đang bán.';
         }
       });
   }
@@ -292,7 +283,7 @@ export class ProductToppingsPageComponent implements OnInit {
         error: () => {
           this.pageData = this.createEmptyPage(page);
           this.productToppings = [];
-          this.errorMessage = 'Không tải được topping đã gắn cho sản phẩm.';
+          this.errorMessage = 'Không tải được phần thêm đã gắn cho sản phẩm.';
         }
       });
   }

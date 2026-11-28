@@ -32,11 +32,9 @@
     <input id="branch-search" type="search" formControlName="keyword" placeholder="Tìm tên, mã, địa chỉ chi nhánh..." (keyup.enter)="search()">
   </label>
 
-  <select id="branch-status-filter" formControlName="status" (change)="search()">
-    <option *ngFor="let status of statusOptions" [value]="status === 'ALL' ? '' : status">
-      {{ status === 'ALL' ? 'Tất cả trạng thái' : statusLabel(status) }}
-    </option>
-  </select>
+  <app-combobox inputId="branch-status-filter" formControlName="status" (selectionChange)="search()" label="Trạng thái chi nhánh" placeholder="Trạng thái chi nhánh">
+    <ng-template comboOption *ngFor="let status of statusOptions" [value]="status === 'ALL' ? '' : status" label="{{ status === 'ALL' ? 'Tất cả trạng thái' : statusLabel(status) }}"></ng-template>
+  </app-combobox>
 
   <button id="branch-search-btn" type="button" class="soft-btn" (click)="search()">Tìm</button>
   <button id="branch-reset-btn" type="button" class="ghost-btn" (click)="reset()">Xóa lọc</button>
@@ -49,7 +47,7 @@
       <span class="eyebrow">{{ editingBranch ? 'Cập nhật' : 'Tạo mới' }}</span>
       <h2>{{ editingBranch ? editingBranch.name : 'Chi nhánh mới' }}</h2>
     </div>
-    <button id="branch-close-form-btn" type="button" class="icon-action" (click)="closeForm()" aria-label="Đóng form">
+    <button id="branch-close-form-btn" type="button" class="icon-action" (click)="closeForm()" aria-label="Đóng biểu mẫu">
       <span class="material-symbols-outlined">close</span>
     </button>
   </div>
@@ -60,7 +58,7 @@
         <span class="material-symbols-outlined">storefront</span>
         <div>
           <strong>Thông tin chi nhánh</strong>
-          <small>Nhập dữ liệu thật sẽ gửi về backend.</small>
+          <small>Nhập thông tin chi nhánh.</small>
         </div>
       </div>
 
@@ -78,7 +76,7 @@
           <input id="branch-phone-input" type="tel" formControlName="phone" placeholder="0901 234 567">
         </label>
         <label>
-          <span>Email</span>
+          <span>Thư điện tử</span>
           <input id="branch-email-input" type="email" formControlName="email" placeholder="branch@pinedrink.vn">
         </label>
       </div>
@@ -134,7 +132,7 @@
         <span class="material-symbols-outlined">schedule</span>
         <div>
           <strong>Giờ mở cửa</strong>
-          <small>{{ editingBranch ? 'Cấu hình lịch theo ngày, dữ liệu lưu vào BranchHours backend.' : 'Thiết lập trước lịch mở cửa; hệ thống sẽ lưu sau khi tạo chi nhánh.' }}</small>
+          <small>{{ editingBranch ? 'Thiết lập giờ mở cửa cho từng ngày.' : 'Thiết lập trước lịch mở cửa; hệ thống sẽ lưu sau khi tạo chi nhánh.' }}</small>
         </div>
       </div>
 
@@ -176,9 +174,9 @@
       <form class="hours-form" [formGroup]="branchHoursForm" (ngSubmit)="saveBranchHours()">
         <label>
           <span>Ngày</span>
-          <select id="branch-hours-day-input" formControlName="dayOfWeek">
-            <option *ngFor="let day of dayOptions" [ngValue]="day.value">{{ day.label }}</option>
-          </select>
+          <app-combobox inputId="branch-hours-day-input" formControlName="dayOfWeek" label="Ngày trong tuần" placeholder="Ngày trong tuần">
+            <ng-template comboOption *ngFor="let day of dayOptions" [value]="day.value" label="{{ day.label }}"></ng-template>
+          </app-combobox>
         </label>
         <label>
           <span>Mở cửa</span>
@@ -238,11 +236,11 @@
     </div>
     <div class="contact-cell">
       <strong>{{ branch.phone || 'Chưa có SĐT' }}</strong>
-      <span>{{ branch.email || 'Chưa có email' }}</span>
+      <span>{{ branch.email || 'Chưa có thư điện tử' }}</span>
     </div>
     <div class="service-chips">
-      <span *ngIf="branch.supportsPickup" class="chip">Pickup</span>
-      <span *ngIf="branch.supportsDelivery" class="chip delivery">Delivery</span>
+      <span *ngIf="branch.supportsPickup" class="chip">Nhận tại quầy</span>
+      <span *ngIf="branch.supportsDelivery" class="chip delivery">Giao hàng</span>
       <span *ngIf="!branch.supportsPickup && !branch.supportsDelivery" class="muted">Chưa bật</span>
     </div>
     <div class="ops-cell">
@@ -268,7 +266,7 @@
   <div class="empty-state" *ngIf="!loading && branches.length === 0">
     <span class="material-symbols-outlined">storefront</span>
     <strong>Chưa có chi nhánh</strong>
-    <p>Thêm chi nhánh đầu tiên để map backend hiển thị lên admin.</p>
+    <p>Thêm chi nhánh đầu tiên để quản lý trên hệ thống.</p>
   </div>
 
   <app-admin-pagination

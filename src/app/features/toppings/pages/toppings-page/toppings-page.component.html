@@ -1,9 +1,9 @@
 <section class="topping-page">
-  <header class="page-header" aria-label="Topping Master header">
+  <header class="page-header" aria-label="Tiêu đề danh mục phần thêm">
     <div class="title-block">
-      <span class="eyebrow">Topping Master</span>
-      <h1>Kho topping</h1>
-      <p>Quản lý topping gốc dùng để gắn vào sản phẩm.</p>
+      <span class="eyebrow">Danh mục phần thêm</span>
+      <h1>Kho phần thêm</h1>
+      <p>Quản lý phần thêm gốc dùng để gắn vào sản phẩm.</p>
     </div>
 
     <div class="header-actions">
@@ -13,7 +13,7 @@
       </button>
       <button id="create-topping-master-btn" type="button" class="btn primary" (click)="openCreateDrawer()">
         <span class="material-symbols-outlined">add</span>
-        Thêm topping
+        Thêm phần thêm
       </button>
     </div>
   </header>
@@ -23,7 +23,7 @@
     {{ errorMessage }}
   </div>
 
-  <section class="stats-row" aria-label="Topping stats">
+  <section class="stats-row" aria-label="Thống kê phần thêm">
     <article class="stat-card">
       <span>Tổng</span>
       <strong>{{ pageData.totalElements }}</strong>
@@ -38,25 +38,25 @@
     </article>
   </section>
 
-  <section class="filter-card" aria-label="Topping filters">
+  <section class="filter-card" aria-label="Bộ lọc phần thêm">
     <label class="search-field">
       <span class="material-symbols-outlined">search</span>
       <input id="topping-master-search-input" type="search" [(ngModel)]="searchTerm" placeholder="Tìm tên, mã, nhóm...">
     </label>
 
     <label class="select-field">
-      <select id="topping-master-status-filter" [(ngModel)]="statusFilter" aria-label="Lọc trạng thái topping">
-        <option value="ALL">Tất cả trạng thái</option>
-        <option value="ACTIVE">Đang bán</option>
-        <option value="INACTIVE">Tạm ẩn</option>
-      </select>
+      <app-combobox inputId="topping-master-status-filter" [(ngModel)]="statusFilter" label="Lọc trạng thái phần thêm" placeholder="Lọc trạng thái phần thêm">
+        <ng-template comboOption value="ALL" label="Tất cả trạng thái"></ng-template>
+        <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+      </app-combobox>
     </label>
 
     <label class="select-field">
-      <select id="topping-master-group-filter" [(ngModel)]="groupFilter" aria-label="Lọc nhóm topping">
-        <option value="ALL">Tất cả nhóm</option>
-        <option *ngFor="let group of groupOptions" [ngValue]="group">{{ group }}</option>
-      </select>
+      <app-combobox inputId="topping-master-group-filter" [(ngModel)]="groupFilter" label="Lọc nhóm phần thêm" placeholder="Lọc nhóm phần thêm">
+        <ng-template comboOption value="ALL" label="Tất cả nhóm"></ng-template>
+        <ng-template comboOption *ngFor="let group of groupOptions" [value]="group" label="{{ group }}"></ng-template>
+      </app-combobox>
     </label>
 
     <button id="clear-topping-master-filters-btn" type="button" class="btn filter-clear" (click)="searchTerm = ''; statusFilter = 'ALL'; groupFilter = 'ALL'">
@@ -68,7 +68,7 @@
   <section class="list-card" [class.is-loading]="loading">
     <div class="list-head">
       <div>
-        <h2>Danh sách topping</h2>
+        <h2>Danh sách phần thêm</h2>
         <p>{{ visibleToppings.length }} kết quả trên trang này</p>
       </div>
       <span class="loading-pill" *ngIf="loading">Đang tải...</span>
@@ -78,7 +78,7 @@
       <table>
         <thead>
           <tr>
-            <th>Topping</th>
+            <th>Phần thêm</th>
             <th>Nhóm</th>
             <th>Giá</th>
             <th>Trạng thái</th>
@@ -165,11 +165,11 @@
     <ng-template #emptyState>
       <div class="empty-state">
         <span class="material-symbols-outlined">icecream</span>
-        <h3>Không có topping phù hợp</h3>
-        <p>Thử đổi bộ lọc hoặc tạo topping mới.</p>
+        <h3>Không có phần thêm phù hợp</h3>
+        <p>Thử đổi bộ lọc hoặc tạo phần thêm mới.</p>
         <button type="button" class="btn primary" (click)="openCreateDrawer()">
           <span class="material-symbols-outlined">add</span>
-          Thêm topping
+          Thêm phần thêm
         </button>
       </div>
     </ng-template>
@@ -182,7 +182,7 @@
     [totalItems]="pageData.totalElements"
     [pageSize]="pageData.size"
     [pageSizeOptions]="pageSizeOptions"
-    itemLabel="topping"
+    itemLabel="phần thêm"
     [disabled]="loading"
     (pageChange)="changePage($event)"
     (pageSizeChange)="changePageSize($event)">
@@ -190,12 +190,12 @@
 </section>
 
 <div class="drawer-backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
-<aside class="drawer" [class.open]="drawerOpen" aria-label="Topping master form">
+<aside class="drawer" [class.open]="drawerOpen" aria-label="Biểu mẫu phần thêm">
   <form [formGroup]="form" (ngSubmit)="saveTopping()">
     <header>
       <div>
         <span class="eyebrow">{{ selectedTopping ? 'Cập nhật' : 'Tạo mới' }}</span>
-        <h2>{{ selectedTopping ? selectedTopping.name : 'Topping mới' }}</h2>
+        <h2>{{ selectedTopping ? selectedTopping.name : 'Phần thêm mới' }}</h2>
       </div>
       <button id="close-topping-master-drawer-btn" type="button" class="icon-btn" (click)="closeDrawer()">
         <span class="material-symbols-outlined">close</span>
@@ -203,7 +203,7 @@
     </header>
 
     <label>
-      <span>Tên topping</span>
+      <span>Tên phần thêm</span>
       <input id="topping-master-name-input" type="text" formControlName="name" placeholder="Ví dụ: Trân châu đen">
     </label>
 
@@ -213,19 +213,19 @@
     </label>
 
     <label>
-      <span>Nhóm topping</span>
+      <span>Nhóm phần thêm</span>
       <input id="topping-master-group-input" type="text" formControlName="groupName" placeholder="Trân châu, Thạch, Kem...">
     </label>
 
     <label>
-      <span>Ảnh topping</span>
+      <span>Ảnh phần thêm</span>
       <input id="topping-master-image-input" type="url" formControlName="imageUrl" placeholder="https://...">
     </label>
 
     <footer>
       <button type="button" class="btn ghost" (click)="closeDrawer()" [disabled]="saving">Hủy</button>
       <button id="save-topping-master-btn" type="submit" class="btn primary" [disabled]="saving">
-        {{ saving ? 'Đang lưu...' : 'Lưu topping' }}
+        {{ saving ? 'Đang lưu...' : 'Lưu phần thêm' }}
       </button>
     </footer>
   </form>

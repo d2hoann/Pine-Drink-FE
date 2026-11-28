@@ -150,13 +150,13 @@ export class ToppingsPageComponent implements OnInit {
 
   deleteTopping(topping: Topping): void {
     this.confirmDialog.confirm({
-      title: 'Xác nhận xóa topping?',
-      message: `Topping ${topping.name} sẽ bị xóa khỏi hệ thống.`,
+      title: 'Xác nhận xóa phần thêm?',
+      message: `Phần thêm ${topping.name} sẽ bị xóa khỏi hệ thống.`,
       description: 'Thao tác này không thể hoàn tác.',
-      confirmText: 'Xóa topping',
+      confirmText: 'Xóa phần thêm',
       cancelText: 'Hủy',
       type: 'danger',
-      risks: ['Topping có thể đang gắn với sản phẩm', 'Không thể khôi phục sau khi xóa']
+      risks: ['Phần thêm có thể đang gắn với sản phẩm', 'Không thể khôi phục sau khi xóa']
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
@@ -168,7 +168,7 @@ export class ToppingsPageComponent implements OnInit {
         .subscribe({
           next: () => this.loadToppings(this.pageData.page),
           error: () => {
-            this.errorMessage = 'Không xóa được topping. Có thể topping đang được gắn với sản phẩm.';
+            this.errorMessage = 'Không xóa được phần thêm. Có thể phần thêm đang được gắn với sản phẩm.';
           }
         });
     });

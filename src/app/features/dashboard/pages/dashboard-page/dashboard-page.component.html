@@ -1,8 +1,8 @@
 <section class="dashboard-shell">
-    <section class="dashboard-overview" aria-label="Tổng quan Dashboard Pine Drink">
+    <section class="dashboard-overview" aria-label="Tổng quan Bảng điều khiển Pine Drink">
       <div class="dashboard-overview__copy">
-        <span class="dashboard-badge">Pine Drink Admin</span>
-        <h1>Dashboard vận hành</h1>
+        <span class="dashboard-badge">Quản trị Pine Drink</span>
+        <h1>Bảng điều khiển vận hành</h1>
         <p>Dữ liệu doanh thu, đơn hàng, sản phẩm và chi nhánh theo thời gian thực từ hệ thống.</p>
       </div>
 
@@ -18,7 +18,7 @@
       </div>
     </section>
 
-    <form class="analytics-filters" (ngSubmit)="loadDashboard()" aria-label="Bộ lọc dashboard">
+    <form class="analytics-filters" (ngSubmit)="loadDashboard()" aria-label="Bộ lọc bảng điều khiển">
       <label>
         <span>Từ ngày</span>
         <input id="dashboard-from-date" type="date" name="fromDate" [(ngModel)]="fromDate">
@@ -29,19 +29,19 @@
       </label>
       <label>
         <span>Chi nhánh</span>
-        <select id="dashboard-branch" name="branchId" [(ngModel)]="selectedBranchId">
-          <option value="">Toàn hệ thống</option>
-          <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.name }}</option>
-        </select>
+        <app-combobox inputId="dashboard-branch" name="branchId" [(ngModel)]="selectedBranchId" label="Chi nhánh" placeholder="Chi nhánh">
+          <ng-template comboOption value="" label="Toàn hệ thống"></ng-template>
+          <ng-template comboOption *ngFor="let branch of branches" [value]="branch.id" label="{{ branch.name }}" [keywords]="branch.code || ''"></ng-template>
+        </app-combobox>
       </label>
       <label>
-        <span>Top sản phẩm</span>
-        <select id="dashboard-limit" name="limit" [(ngModel)]="topProductLimit">
-          <option [ngValue]="5">Top 5</option>
-          <option [ngValue]="10">Top 10</option>
-          <option [ngValue]="20">Top 20</option>
-          <option [ngValue]="50">Top 50</option>
-        </select>
+        <span>Số sản phẩm nổi bật</span>
+        <app-combobox inputId="dashboard-limit" name="limit" [(ngModel)]="topProductLimit" label="Số sản phẩm hiển thị" placeholder="Số sản phẩm hiển thị">
+          <ng-template comboOption [value]="5" label="5 sản phẩm"></ng-template>
+          <ng-template comboOption [value]="10" label="10 sản phẩm"></ng-template>
+          <ng-template comboOption [value]="20" label="20 sản phẩm"></ng-template>
+          <ng-template comboOption [value]="50" label="50 sản phẩm"></ng-template>
+        </app-combobox>
       </label>
       <div class="filter-actions">
         <button id="dashboard-refresh" type="submit" class="primary-action" [disabled]="isLoading">
@@ -50,7 +50,7 @@
         </button>
         <button id="dashboard-reset" type="button" class="ghost-action" (click)="resetFilters()">
           <span class="material-symbols-outlined">restart_alt</span>
-          Reset
+          Đặt lại
         </button>
       </div>
     </form>
@@ -152,7 +152,7 @@
       <article class="panel sales-panel">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">Top products</span>
+            <span class="eyebrow">Sản phẩm bán chạy</span>
             <h2>Sản phẩm bán chạy</h2>
           </div>
           <span class="panel-note">Theo doanh thu</span>
@@ -176,17 +176,17 @@
       <article class="panel branch-panel">
         <div class="panel-heading">
           <div>
-            <span class="eyebrow">Branch performance</span>
+            <span class="eyebrow">Hiệu quả chi nhánh</span>
             <h2>Hiệu suất chi nhánh</h2>
           </div>
-          <span class="panel-note">Doanh thu & AOV</span>
+          <span class="panel-note">Doanh thu và giá trị đơn trung bình</span>
         </div>
         <div class="branch-table" *ngIf="branchPerformance.length; else emptyBranches">
           <div class="branch-table__head" aria-hidden="true">
             <span>Chi nhánh</span>
             <span>Hoàn tất</span>
             <span>Hủy</span>
-            <span>AOV</span>
+            <span>Giá trị đơn trung bình</span>
             <span>Doanh thu</span>
           </div>
           <div class="branch-row" *ngFor="let branch of branchPerformance">

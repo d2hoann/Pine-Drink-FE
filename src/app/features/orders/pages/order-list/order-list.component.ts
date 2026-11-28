@@ -50,15 +50,15 @@ export class OrderListComponent implements OnInit, OnDestroy {
   }
 
   readonly tabs: { label: string; value: OrderStatus | 'ALL'; count: number }[] = [
-    { label: 'All', value: 'ALL', count: 0 },
-    { label: 'Pending', value: 'PENDING', count: 0 },
-    { label: 'Confirmed', value: 'CONFIRMED', count: 0 },
-    { label: 'Preparing', value: 'PREPARING', count: 0 },
-    { label: 'Ready', value: 'READY', count: 0 },
-    { label: 'Delivering', value: 'DELIVERING', count: 0 },
-    { label: 'Completed', value: 'COMPLETED', count: 0 },
-    { label: 'Cancelled', value: 'CANCELLED', count: 0 },
-    { label: 'Rejected', value: 'REJECTED', count: 0 }
+    { label: 'Tất cả', value: 'ALL', count: 0 },
+    { label: 'Đang chờ', value: 'PENDING', count: 0 },
+    { label: 'Đã xác nhận', value: 'CONFIRMED', count: 0 },
+    { label: 'Đang pha chế', value: 'PREPARING', count: 0 },
+    { label: 'Đã chuẩn bị', value: 'READY', count: 0 },
+    { label: 'Đang giao', value: 'DELIVERING', count: 0 },
+    { label: 'Hoàn tất', value: 'COMPLETED', count: 0 },
+    { label: 'Đã hủy', value: 'CANCELLED', count: 0 },
+    { label: 'Đã từ chối', value: 'REJECTED', count: 0 }
   ];
 
   constructor(
@@ -377,7 +377,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
         this.orders = this.orders.map(o => o.id === order.id ? normalized : o);
         this.selectedOrder = normalized;
 
-        this.toastService.success(`Đã xác nhận thanh toán ${Number(transaction.amount || normalized.totalAmount || 0).toLocaleString()} đ qua ${this.getPaymentMethodLabel(normalized.paymentMethod)}`);
+        this.toastService.success(`Đã xác nhận thanh toán ${Number(transaction.amount || normalized.totalAmount || 0).toLocaleString('vi-VN')} đ qua ${this.getPaymentMethodLabel(normalized.paymentMethod)}`);
       },
       error: (error) => {
         console.error('Record offline payment failed', error);
@@ -415,7 +415,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
       case 'VNPAY_QR': return 'VNPay QR';
       case 'BANK_TRANSFER': return 'Chuyển khoản';
       case 'COD': return 'Thanh toán khi nhận hàng';
-      default: return method || 'N/A';
+      default: return 'Chưa xác định';
     }
   }
 
@@ -426,7 +426,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
     if (order.status === 'PENDING') {
       return this.canRecordOfflinePayment(order)
-        ? 'Xác nhận thanh toán thực tế qua backend trước khi xác nhận đơn.'
+        ? 'Xác nhận thanh toán thực tế qua hệ thống trước khi xác nhận đơn.'
         : 'Đang chờ cổng thanh toán xác nhận, không thể xác nhận thủ công.';
     }
 
@@ -541,11 +541,11 @@ export class OrderListComponent implements OnInit, OnDestroy {
     }
 
     if (!order.items || order.items.length === 0) {
-      return 'No items';
+      return 'Chưa có món';
     }
 
     const firstItem = order.items[0];
-    const itemName = firstItem.name || firstItem.productName || 'Item';
+    const itemName = firstItem.name || firstItem.productName || 'Món';
     const restCount = order.items.length - 1;
     let brief = `${itemName} x${firstItem.quantity}`;
     if (restCount > 0) {
@@ -555,9 +555,9 @@ export class OrderListComponent implements OnInit, OnDestroy {
   }
 
   getTableNumber(order: Order): string {
-    if (!order.note) return 'Counter';
+    if (!order.note) return 'Nhận tại quầy';
     const match = order.note.match(/(?:table|bàn)\s*#?(\d+)/i);
-    return match ? match[1] : 'Counter';
+    return match ? match[1] : 'Nhận tại quầy';
   }
 
   getRelativeTime(createdAt: string): string {
@@ -566,11 +566,11 @@ export class OrderListComponent implements OnInit, OnDestroy {
     const now = new Date().getTime();
     const diffMs = now - created;
     const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return 'Vừa xong';
     if (diffMins < 60) return `${diffMins}m ago`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours}h ago`;
-    return new Date(createdAt).toLocaleDateString();
+    return new Date(createdAt).toLocaleDateString('vi-VN');
   }
 
   copyToClipboard(text: string): void {
@@ -585,7 +585,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
     const printContent = this.generateReceiptHtml(order);
     const win = window.open('', '_blank');
     if (win) {
-      win.document.write(win.document.title = `Receipt_${order.orderCode}`);
+      win.document.title = `Hóa đơn ${order.orderCode}`;
       win.document.body.innerHTML = printContent;
       win.document.close();
       win.print();
@@ -598,7 +598,7 @@ export class OrderListComponent implements OnInit, OnDestroy {
     const itemsHtml = order.items.map(item => `
       <tr>
         <td>${item.name} x${item.quantity}</td>
-        <td style="text-align: right;">${item.totalPrice.toLocaleString()} đ</td>
+        <td style="text-align: right;">${item.totalPrice.toLocaleString('vi-VN')} đ</td>
       </tr>
       ${item.toppings.length ? `
         <tr>
@@ -624,12 +624,12 @@ export class OrderListComponent implements OnInit, OnDestroy {
       <body>
         <div class="center">
           <h3>PINE DRINK</h3>
-          <p>${order.branchName || 'Branch Store'}</p>
-          <p>Order ID: ${order.orderCode}</p>
+          <p>${order.branchName || 'Chi nhánh'}</p>
+          <p>Mã đơn: ${order.orderCode}</p>
           <p>${order.createdAt}</p>
         </div>
         <div class="divider"></div>
-        <p><span class="bold">Customer:</span> ${order.customerName || 'Walk-in'}</p>
+        <p><span class="bold">Khách hàng:</span> ${order.customerName || 'Khách vãng lai'}</p>
         <p><span class="bold">Type:</span> ${order.type}</p>
         <div class="divider"></div>
         <table>
@@ -637,10 +637,10 @@ export class OrderListComponent implements OnInit, OnDestroy {
         </table>
         <div class="divider"></div>
         <table>
-          <tr><td>Subtotal:</td><td style="text-align: right;">${(order.subtotal || 0).toLocaleString()} đ</td></tr>
-          <tr><td>Discount:</td><td style="text-align: right;">-${(order.discount || 0).toLocaleString()} đ</td></tr>
-          ${order.deliveryFee ? `<tr><td>Delivery Fee:</td><td style="text-align: right;">${(order.deliveryFee || 0).toLocaleString()} đ</td></tr>` : ''}
-          <tr class="bold"><td>Total:</td><td style="text-align: right;">${(order.totalAmount || 0).toLocaleString()} đ</td></tr>
+          <tr><td>Tạm tính:</td><td style="text-align: right;">${(order.subtotal || 0).toLocaleString('vi-VN')} đ</td></tr>
+          <tr><td>Giảm giá:</td><td style="text-align: right;">-${(order.discount || 0).toLocaleString('vi-VN')} đ</td></tr>
+          ${order.deliveryFee ? `<tr><td>Phí giao hàng:</td><td style="text-align: right;">${(order.deliveryFee || 0).toLocaleString('vi-VN')} đ</td></tr>` : ''}
+          <tr class="bold"><td>Tổng cộng:</td><td style="text-align: right;">${(order.totalAmount || 0).toLocaleString('vi-VN')} đ</td></tr>
         </table>
         <div class="divider"></div>
         <div class="center">
@@ -742,10 +742,10 @@ export class OrderListComponent implements OnInit, OnDestroy {
       .reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
 
     this.stats = [
-      { label: 'Pending Orders', value: pending },
-      { label: 'Preparing', value: preparing },
-      { label: 'Completed Revenue', value: revenue },
-      { label: 'Total Orders', value: this.allOrders.length }
+      { label: 'Đơn chờ xử lý', value: pending },
+      { label: 'Đang pha chế', value: preparing },
+      { label: 'Doanh thu đơn hoàn tất', value: revenue },
+      { label: 'Tổng đơn hàng', value: this.allOrders.length }
     ];
   }
 
@@ -795,14 +795,14 @@ export class OrderListComponent implements OnInit, OnDestroy {
 
   private buildTimeline(order: Order) {
     return [
-      { status: 'REJECTED' as OrderStatus, time: order.rejectedAt ?? '', note: order.rejectReason || 'Rejected' },
-      { status: 'CANCELLED' as OrderStatus, time: order.cancelledAt ?? '', note: order.cancelReason || 'Cancelled' },
-      { status: 'COMPLETED' as OrderStatus, time: order.completedAt ?? '', note: 'Completed' },
-      { status: 'DELIVERING' as OrderStatus, time: order.deliveringAt ?? '', note: 'Delivering' },
-      { status: 'READY' as OrderStatus, time: order.readyAt ?? '', note: 'Ready' },
-      { status: 'PREPARING' as OrderStatus, time: order.preparedAt ?? '', note: 'Preparing' },
-      { status: 'CONFIRMED' as OrderStatus, time: order.confirmedAt ?? '', note: 'Confirmed' },
-      { status: 'PENDING' as OrderStatus, time: order.createdAt, note: 'Order created' }
+      { status: 'REJECTED' as OrderStatus, time: order.rejectedAt ?? '', note: order.rejectReason || 'Đã từ chối' },
+      { status: 'CANCELLED' as OrderStatus, time: order.cancelledAt ?? '', note: order.cancelReason || 'Đã hủy' },
+      { status: 'COMPLETED' as OrderStatus, time: order.completedAt ?? '', note: 'Hoàn tất' },
+      { status: 'DELIVERING' as OrderStatus, time: order.deliveringAt ?? '', note: 'Đang giao' },
+      { status: 'READY' as OrderStatus, time: order.readyAt ?? '', note: 'Đã chuẩn bị' },
+      { status: 'PREPARING' as OrderStatus, time: order.preparedAt ?? '', note: 'Đang pha chế' },
+      { status: 'CONFIRMED' as OrderStatus, time: order.confirmedAt ?? '', note: 'Đã xác nhận' },
+      { status: 'PENDING' as OrderStatus, time: order.createdAt, note: 'Đã tạo đơn' }
     ].filter(item => item.time);
   }
 }

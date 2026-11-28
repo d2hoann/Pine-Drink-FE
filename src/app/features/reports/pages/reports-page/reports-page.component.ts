@@ -119,7 +119,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
 
     this.isSubmitting = true;
     this.setExportState('creating', 'Đang tạo báo cáo...');
-    this.toastService.info('Bắt đầu xuất báo cáo. Hệ thống đang tạo file trong nền.');
+    this.toastService.info('Bắt đầu xuất báo cáo. Hệ thống đang tạo tệp trong nền.');
 
     const filters = this.filterForm.value;
     const request = {
@@ -178,7 +178,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
           link.download = `product-catalog-${job.id}.${job.fileFormat.toLowerCase()}`;
           link.click();
           URL.revokeObjectURL(url);
-          this.toastService.success('Xuất báo cáo thành công. File đã được tải xuống.');
+          this.toastService.success('Xuất báo cáo thành công. Tệp đã được tải xuống.');
           if (fromAutoExport) {
             this.setExportState('success', 'Xuất báo cáo thành công');
             this.scheduleExportReset();

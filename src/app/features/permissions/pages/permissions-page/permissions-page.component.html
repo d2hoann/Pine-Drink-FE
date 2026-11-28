@@ -1,18 +1,18 @@
-<app-page-header title="Phân quyền" description="Quản lý role, permission và rủi ro thao tác trong dashboard."></app-page-header>
+<app-page-header title="Phân quyền" description="Quản lý vai trò, quyền thao tác và mức độ rủi ro."></app-page-header>
 
 <section class="permission-hero">
   <article class="hero-card featured">
     <span class="material-symbols-outlined">admin_panel_settings</span>
     <div>
-      <small>Permission center</small>
+      <small>Quản lý phân quyền</small>
       <h2>{{ permissions.length }} quyền hệ thống</h2>
-      <p>Kiểm soát quyền theo role, tránh cấp nhầm thao tác nguy hiểm.</p>
+      <p>Kiểm soát quyền theo vai trò, tránh cấp nhầm thao tác nguy hiểm.</p>
     </div>
   </article>
   <article class="hero-card">
     <span class="material-symbols-outlined">groups</span>
     <div>
-      <small>Roles</small>
+      <small>Vai trò</small>
       <strong>{{ roles.length }}</strong>
     </div>
   </article>
@@ -38,7 +38,7 @@
       <span class="material-symbols-outlined">badge</span>
       <div>
         <strong>Vai trò</strong>
-        <small>Chọn role để xem quyền đang có</small>
+        <small>Chọn vai trò để xem quyền hiện có</small>
       </div>
     </div>
 
@@ -52,31 +52,27 @@
     >
       <span class="role-icon material-symbols-outlined">{{ role.locked ? 'workspace_premium' : 'manage_accounts' }}</span>
       <span>
-        <strong>{{ role.label }}</strong>
+        <strong>{{ role.role | businessLabel:'role':role.label }}</strong>
         <small>{{ role.permissions.length }} / {{ permissions.length }} quyền</small>
       </span>
-      <em *ngIf="role.locked">Locked</em>
+      <em *ngIf="role.locked">Chỉ xem</em>
     </button>
   </aside>
 
   <section class="matrix-panel">
     <div class="matrix-toolbar">
       <div>
-        <span class="eyebrow">{{ selectedRoleData?.role }}</span>
-        <h2>{{ selectedRoleData?.label }}</h2>
-        <p>{{ selectedRoleData?.description }}</p>
+        <h2>{{ selectedRoleData?.role | businessLabel:'role':selectedRoleData?.label }}</h2>
+        <p *ngIf="selectedRoleData?.description">{{ selectedRoleData?.description }}</p>
       </div>
 
       <div class="toolbar-controls">
-        <select
-          id="permission-module-filter"
+        <app-combobox
+          inputId="permission-module-filter"
           [ngModel]="selectedModule"
-          (ngModelChange)="onModuleChange($event)"
-        >
-          <option *ngFor="let module of moduleOptions" [ngValue]="module">
-            {{ module === 'ALL' ? 'Tất cả module' : module }}
-          </option>
-        </select>
+          (ngModelChange)="onModuleChange($event)" label="Phân hệ" placeholder="Phân hệ">
+          <ng-template comboOption *ngFor="let module of moduleOptions" [value]="module" label="{{ module | businessLabel:'module' }}"></ng-template>
+        </app-combobox>
         <button
           id="save-role-permissions-btn"
           type="button"
@@ -97,15 +93,15 @@
 
     <div class="readonly-banner" *ngIf="selectedRoleData && !canEditRole(selectedRoleData)">
       <span class="material-symbols-outlined">lock</span>
-      Role này đang ở chế độ chỉ xem hoặc tài khoản hiện tại thiếu quyền gán/gỡ role.
+      Vai trò này chỉ được xem hoặc tài khoản của bạn chưa có quyền gán hay gỡ quyền.
     </div>
 
     <div class="permission-groups">
       <article class="permission-group" *ngFor="let group of filteredGroups">
         <div class="group-head">
           <div>
-            <small>Module</small>
-            <h3>{{ group.module }}</h3>
+            <small>Phân hệ</small>
+            <h3>{{ group.module | businessLabel:'module' }}</h3>
           </div>
           <strong>{{ group.permissions.length }} quyền</strong>
         </div>
@@ -128,7 +124,7 @@
             <span class="permission-copy">
               <strong>{{ permission.name }}</strong>
               <small>{{ permission.code }}</small>
-              <p>{{ permission.description }}</p>
+              <p *ngIf="permission.description">{{ permission.description }}</p>
             </span>
             <em [class]="permission.risk.toLowerCase()">{{ riskLabel(permission.risk) }}</em>
           </button>
