@@ -103,7 +103,8 @@ export class AdminLayoutComponent implements AfterViewInit {
       icon: 'monitoring',
       items: [
         { label: 'Mã giảm giá', icon: 'confirmation_number', route: '/admin/vouchers', roles: ['ADMIN', 'MANAGER'] },
-        { label: 'Báo cáo', icon: 'monitoring', route: '/admin/reports', permission: 'REPORT_VIEW' }
+        { label: 'Báo cáo bán hàng', icon: 'monitoring', route: '/admin/reports', permission: 'REPORT_VIEW' },
+        { label: 'Tiến trình báo cáo', icon: 'schedule', route: '/admin/reports/processes', permission: 'REPORT_VIEW' }
       ]
     }
   ];

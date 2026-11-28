@@ -1,0 +1,130 @@
+<div class="process-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">BÁO CÁO BẤT ĐỒNG BỘ</span>
+      <h1>Tiến trình xuất báo cáo</h1>
+      <p>Theo dõi trạng thái xử lý, tải tệp kết quả hoặc thử lại tiến trình lỗi.</p>
+    </div>
+    <div class="header-actions">
+      <a class="button secondary" routerLink="/admin/reports">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Bảng kê bán hàng
+      </a>
+      <button type="button" class="button primary" (click)="refresh()">
+        <span class="material-symbols-outlined">refresh</span>
+        Làm mới
+      </button>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article><span>Tổng tiến trình</span><strong>{{ stats.total }}</strong></article>
+    <article><span>Đang xử lý</span><strong>{{ stats.running }}</strong></article>
+    <article><span>Hoàn tất</span><strong>{{ stats.completed }}</strong></article>
+    <article><span>Lỗi</span><strong>{{ stats.failed }}</strong></article>
+  </section>
+
+  <section class="filter-card">
+    <form [formGroup]="filterForm" class="filter-grid">
+      <div class="field">
+        <label for="processFromDate">Từ ngày tạo</label>
+        <input id="processFromDate" class="control" type="date" formControlName="fromDate" [max]="filterForm.value.toDate || null">
+      </div>
+      <div class="field">
+        <label for="processToDate">Đến ngày tạo</label>
+        <input id="processToDate" class="control" type="date" formControlName="toDate" [min]="filterForm.value.fromDate || null">
+      </div>
+      <div class="field">
+        <label for="processReportType">Loại báo cáo</label>
+        <app-combobox inputId="processReportType" formControlName="reportType" label="Loại báo cáo" placeholder="Tất cả loại">
+          <ng-template comboOption value="" label="Tất cả loại"></ng-template>
+          <ng-template comboOption value="SALES_DETAIL" label="Bảng kê chi tiết bán hàng"></ng-template>
+          <ng-template comboOption value="PRODUCT_CATALOG" label="Danh mục sản phẩm"></ng-template>
+        </app-combobox>
+      </div>
+      <div class="field">
+        <label for="processFormat">Định dạng</label>
+        <app-combobox inputId="processFormat" formControlName="fileFormat" label="Định dạng" placeholder="Tất cả định dạng">
+          <ng-template comboOption value="" label="Tất cả định dạng"></ng-template>
+          <ng-template comboOption value="PDF" label="PDF"></ng-template>
+          <ng-template comboOption value="XLSX" label="Excel"></ng-template>
+        </app-combobox>
+      </div>
+      <div class="field">
+        <label for="processStatus">Trạng thái</label>
+        <app-combobox inputId="processStatus" formControlName="status" label="Trạng thái" placeholder="Tất cả trạng thái">
+          <ng-template comboOption value="" label="Tất cả trạng thái"></ng-template>
+          <ng-template comboOption value="PENDING" label="Chờ xử lý"></ng-template>
+          <ng-template comboOption value="RUNNING" label="Đang xử lý"></ng-template>
+          <ng-template comboOption value="DONE" label="Hoàn tất"></ng-template>
+          <ng-template comboOption value="FAILED" label="Lỗi"></ng-template>
+        </app-combobox>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="button secondary" (click)="resetFilter()">Đặt lại</button>
+        <button type="button" class="button primary" (click)="applyFilter()">Lọc</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="table-card">
+    <div class="loading" *ngIf="isLoading">Đang tải danh sách tiến trình...</div>
+    <div class="table-scroll" *ngIf="!isLoading && jobs.length">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã tiến trình</th>
+            <th>Loại báo cáo</th>
+            <th>Định dạng</th>
+            <th>Thời gian tạo</th>
+            <th>Bắt đầu</th>
+            <th>Hoàn tất</th>
+            <th>Trạng thái</th>
+            <th>Lỗi</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let job of jobs">
+            <td class="code" [title]="job.id">{{ job.id | slice:0:8 }}</td>
+            <td>{{ reportTypeLabel(job.reportType) }}</td>
+            <td><span class="format">{{ job.fileFormat }}</span></td>
+            <td>{{ formatDate(job.requestedAt) }}</td>
+            <td>{{ formatDate(job.startedAt) }}</td>
+            <td>{{ formatDate(job.completedAt) }}</td>
+            <td><span class="status" [attr.data-status]="job.status">{{ statusLabel(job.status) }}</span></td>
+            <td class="error" [title]="job.errorMessage || ''">{{ job.errorMessage || '—' }}</td>
+            <td>
+              <div class="row-actions">
+                <button type="button" title="Tải tệp" [disabled]="job.status !== 'DONE' || isDownloading(job.id)" (click)="download(job)">
+                  <span class="material-symbols-outlined">download</span>
+                </button>
+                <button type="button" title="Thử lại" *ngIf="canCreateReport && job.status === 'FAILED'" [disabled]="isRetrying(job.id)" (click)="retry(job)">
+                  <span class="material-symbols-outlined">replay</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty" *ngIf="!isLoading && !jobs.length">
+      <span class="material-symbols-outlined">hourglass_empty</span>
+      <strong>Chưa có tiến trình phù hợp</strong>
+    </div>
+
+    <app-admin-pagination
+      *ngIf="totalElements > 0"
+      [page]="page"
+      [totalPages]="totalPages"
+      [totalItems]="totalElements"
+      [pageSize]="size"
+      [pageSizeOptions]="[10, 20, 50]"
+      itemLabel="tiến trình"
+      [disabled]="isLoading"
+      (pageChange)="goToPage($event)"
+      (pageSizeChange)="changePageSize($event)">
+    </app-admin-pagination>
+  </section>
+</div>

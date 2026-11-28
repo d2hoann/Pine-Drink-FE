@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { BaseResponse } from '../../../shared/models/base-response.model';
 import { PageResponse } from '../../../shared/models/page-response.model';
-import { CategoryCreateRequest, CategoryStatusRequest, CategoryUpdateRequest } from '../models/category-request.model';
+import { CategoryCreateRequest, CategoryUpdateRequest } from '../models/category-request.model';
 import { Category } from '../models/category.model';
 
 @Injectable({
@@ -64,11 +64,6 @@ export class CategoryService {
       .pipe(map((response) => this.normalizeCategory(response.data)));
   }
 
-  updateCategoryStatus(id: string, request: CategoryStatusRequest): Observable<Category> {
-    return this.http
-      .patch<BaseResponse<Category>>(`${this.apiUrl}/${id}/status`, request)
-      .pipe(map((response) => this.normalizeCategory(response.data)));
-  }
 
   deleteCategory(id: string): Observable<void> {
     return this.http.delete<BaseResponse<null>>(`${this.apiUrl}/${id}`).pipe(map(() => void 0));
@@ -79,7 +74,8 @@ export class CategoryService {
       name: request.name,
       description: request.description || '',
       imageUrl: request.imageUrl || '',
-      displayOrder: Number(request.displayOrder) || 0
+      displayOrder: Number(request.displayOrder) || 0,
+      ...('status' in request && request.status ? { status: request.status } : {})
     };
   }
 

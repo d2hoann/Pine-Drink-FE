@@ -31,8 +31,5 @@ export interface ProductVariantUpdateRequest {
   sizeLabel?: string;
   priceDelta?: number;
   displayOrder?: number;
-}
-
-export interface ProductVariantStatusRequest {
-  status: ProductVariantStatus;
+  status?: ProductVariantStatus;
 }

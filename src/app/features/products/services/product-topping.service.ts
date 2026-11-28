@@ -9,7 +9,6 @@ import { PageResponse } from '../../../shared/models/page-response.model';
 import {
   ProductTopping,
   ProductToppingAssignRequest,
-  ProductToppingStatusRequest,
   ProductToppingSummary,
   ProductToppingUpdateRequest
 } from '../models/product-topping.model';
@@ -55,11 +54,6 @@ export class ProductToppingService {
       .pipe(map((response) => this.normalizeProductTopping(response.data)));
   }
 
-  updateProductToppingStatus(productId: string, productToppingId: string, request: ProductToppingStatusRequest): Observable<ProductTopping> {
-    return this.http
-      .patch<BaseResponse<ProductTopping>>(`${this.productToppingsUrl(productId)}/${productToppingId}/status`, request)
-      .pipe(map((response) => this.normalizeProductTopping(response.data)));
-  }
 
   deleteProductTopping(productId: string, productToppingId: string): Observable<void> {
     return this.http.delete<BaseResponse<null>>(`${this.productToppingsUrl(productId)}/${productToppingId}`).pipe(map(() => void 0));

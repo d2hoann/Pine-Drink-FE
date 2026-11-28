@@ -11,8 +11,6 @@ export interface BranchCreateRequest {
   averagePreparationMinutes?: number;
 }
 
-export type BranchUpdateRequest = BranchCreateRequest;
-
-export interface BranchStatusUpdateRequest {
-  status: 'ACTIVE' | 'INACTIVE';
+export interface BranchUpdateRequest extends BranchCreateRequest {
+  status?: 'ACTIVE' | 'INACTIVE';
 }

@@ -119,10 +119,10 @@
                   <span class="material-symbols-outlined">edit</span>
                   <b>Sửa</b>
                 </button>
-                <button id="toggle-category-{{ category.id }}" type="button" class="action-btn toggle"
-                  (click)="$event.stopPropagation(); toggleStatus(category)" title="Ẩn/Bật">
-                  <span class="material-symbols-outlined">{{ category.status === 'ACTIVE' ? 'visibility_off' : 'visibility' }}</span>
-                  <b>{{ category.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}</b>
+                <button id="delete-category-{{ category.id }}" type="button" class="action-btn toggle"
+                  (click)="$event.stopPropagation(); deleteCategory(category)" title="Xóa">
+                  <span class="material-symbols-outlined">delete</span>
+                  <b>Xóa</b>
                 </button>
               </div>
             </td>
@@ -204,6 +204,14 @@
     <label>
       Thứ tự hiển thị
       <input id="category-order-input" type="number" min="0" formControlName="displayOrder" />
+    </label>
+
+    <label *ngIf="selectedCategory">
+      Trạng thái
+      <app-combobox inputId="category-status-input" formControlName="status" label="Trạng thái danh mục" placeholder="Trạng thái danh mục">
+        <ng-template comboOption value="ACTIVE" label="Đang bật"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+      </app-combobox>
     </label>
 
     <div class="drawer-actions">

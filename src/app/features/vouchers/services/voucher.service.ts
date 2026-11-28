@@ -55,12 +55,6 @@ export class VoucherService {
     return this.http.put<BaseResponse<VoucherResponse>>(url, payload);
   }
 
-  updateStatus(id: string, status: string): Observable<BaseResponse<VoucherResponse>> {
-    const url = `${this.apiUrl}/${id}/status`;
-    const body = { status };
-
-    return this.http.patch<BaseResponse<VoucherResponse>>(url, body);
-  }
 
   delete(id: string): Observable<BaseResponse<void>> {
     const url = `${this.apiUrl}/${id}`;

@@ -12,4 +12,4 @@ export interface ProductCreateRequest {
   availableSugarLevels?: string;
 }
 
-export type ProductUpdateRequest = Partial<ProductCreateRequest>;
+export type ProductUpdateRequest = Partial<ProductCreateRequest> & { status?: 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK' };

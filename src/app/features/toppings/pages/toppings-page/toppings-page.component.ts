@@ -21,7 +21,8 @@ export class ToppingsPageComponent implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(150)]],
     price: [0, [Validators.required, Validators.min(0)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
-    groupName: ['', [Validators.maxLength(100)]]
+    groupName: ['', [Validators.maxLength(100)]],
+    status: ['ACTIVE' as Topping['status']]
   });
 
   toppings: Topping[] = [];
@@ -89,7 +90,8 @@ export class ToppingsPageComponent implements OnInit {
             name: detail.name,
             price: detail.price || 0,
             imageUrl: detail.imageUrl || '',
-            groupName: detail.groupName || ''
+            groupName: detail.groupName || '',
+            status: detail.status
           });
           this.drawerOpen = true;
         },
@@ -112,10 +114,10 @@ export class ToppingsPageComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const { status, ...createPayload } = this.form.getRawValue();
     const request$ = this.selectedTopping
-      ? this.toppingService.updateTopping(this.selectedTopping.id, payload)
-      : this.toppingService.createTopping(payload);
+      ? this.toppingService.updateTopping(this.selectedTopping.id, { ...createPayload, status })
+      : this.toppingService.createTopping(createPayload);
 
     this.saving = true;
     this.errorMessage = '';
@@ -133,30 +135,16 @@ export class ToppingsPageComponent implements OnInit {
       });
   }
 
-  toggleStatus(topping: Topping): void {
-    const nextStatus = topping.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    this.loading = true;
-    this.errorMessage = '';
-
-    this.toppingService.updateToppingStatus(topping.id, { status: nextStatus })
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: () => this.loadToppings(this.pageData.page),
-        error: () => {
-          this.errorMessage = 'Không đổi được trạng thái topping. Vui lòng thử lại.';
-        }
-      });
-  }
 
   deleteTopping(topping: Topping): void {
     this.confirmDialog.confirm({
       title: 'Xác nhận xóa phần thêm?',
-      message: `Phần thêm ${topping.name} sẽ bị xóa khỏi hệ thống.`,
+      message: `Phần thêm ${topping.name} sẽ bị xóa vĩnh viễn khỏi hệ thống.`,
       description: 'Thao tác này không thể hoàn tác.',
-      confirmText: 'Xóa phần thêm',
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
       type: 'danger',
-      risks: ['Phần thêm có thể đang gắn với sản phẩm', 'Không thể khôi phục sau khi xóa']
+      risks: ['Không thể xóa nếu phần thêm đang gắn với sản phẩm', 'Không thể khôi phục sau khi xóa']
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
@@ -166,9 +154,9 @@ export class ToppingsPageComponent implements OnInit {
       this.toppingService.deleteTopping(topping.id)
         .pipe(finalize(() => (this.loading = false)))
         .subscribe({
-          next: () => this.loadToppings(this.pageData.page),
-          error: () => {
-            this.errorMessage = 'Không xóa được phần thêm. Có thể phần thêm đang được gắn với sản phẩm.';
+          next: () => {
+            const page = this.toppings.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+            this.loadToppings(page);
           }
         });
     });

@@ -45,7 +45,8 @@ export class VouchersPageComponent implements OnInit {
     usageLimitPerCustomer: [1],
     startAt: ['', Validators.required],
     endAt: ['', Validators.required],
-    branchIds: this.fb.nonNullable.control<string[]>([])
+    branchIds: this.fb.nonNullable.control<string[]>([]),
+    status: ['ACTIVE']
   });
 
   constructor(
@@ -96,7 +97,8 @@ export class VouchersPageComponent implements OnInit {
       usageLimitPerCustomer: 1,
       startAt: this.toDateTimeLocal(new Date()),
       endAt: this.toDateTimeLocal(new Date(Date.now() + 7 * 86400000)),
-      branchIds: []
+      branchIds: [],
+      status: 'ACTIVE'
     });
   }
 
@@ -121,7 +123,8 @@ export class VouchersPageComponent implements OnInit {
             usageLimitPerCustomer: detail.usageLimitPerCustomer ?? 1,
             startAt: this.toDateTimeLocal(detail.startAt),
             endAt: this.toDateTimeLocal(detail.endAt),
-            branchIds: detail.branchIds || []
+            branchIds: detail.branchIds || [],
+            status: detail.status
           });
         },
         error: () => this.toast.error('Không tải được chi tiết mã giảm giá')
@@ -151,46 +154,25 @@ export class VouchersPageComponent implements OnInit {
     });
   }
 
-  updateStatus(voucher: VoucherResponse, status: string): void {
-    const action = status === 'ACTIVE' ? 'bật' : 'tắt';
-    this.confirmDialog.confirm({
-      title: `Xác nhận ${action} voucher?`,
-      message: `Bạn chắc muốn ${action} voucher ${voucher.code}?`,
-      confirmText: status === 'ACTIVE' ? 'Bật mã giảm giá' : 'Tắt mã giảm giá',
-      cancelText: 'Hủy',
-      type: status === 'ACTIVE' ? 'success' : 'warning',
-      affectedItems: [voucher.name || voucher.code]
-    }).subscribe((confirmed) => {
-      if (!confirmed) return;
-
-      this.voucherService.updateStatus(voucher.id, status).subscribe({
-        next: () => {
-          this.toast.success('Đã cập nhật trạng thái');
-          this.loadVouchers();
-        },
-        error: () => this.toast.error('Cập nhật trạng thái thất bại')
-      });
-    });
-  }
 
   remove(voucher: VoucherResponse): void {
     this.confirmDialog.confirm({
       title: 'Xác nhận xóa mã giảm giá?',
-      message: `Mã giảm giá ${voucher.code} sẽ bị xóa khỏi hệ thống.`,
+      message: `Mã giảm giá ${voucher.code} sẽ bị xóa vĩnh viễn khỏi hệ thống.`,
       description: 'Thao tác này không thể hoàn tác.',
-      confirmText: 'Xóa mã giảm giá',
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
       type: 'danger',
-      risks: ['Mất cấu hình mã giảm giá', 'Không thể khôi phục sau khi xóa']
+      risks: ['Không thể xóa nếu mã đã được sử dụng', 'Không thể khôi phục sau khi xóa']
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
       this.voucherService.delete(voucher.id).subscribe({
         next: () => {
           this.toast.success('Đã xóa mã giảm giá');
+          if (this.vouchers.length === 1 && this.page > 0) this.page--;
           this.loadVouchers();
-        },
-        error: () => this.toast.error('Xóa mã giảm giá thất bại')
+        }
       });
     });
   }
@@ -255,7 +237,8 @@ export class VouchersPageComponent implements OnInit {
       usageLimitPerCustomer: raw.usageLimitPerCustomer === null ? null : Number(raw.usageLimitPerCustomer),
       startAt: this.toIsoLocal(raw.startAt!),
       endAt: this.toIsoLocal(raw.endAt!),
-      branchIds: raw.branchIds
+      branchIds: raw.branchIds,
+      ...(this.editing && (raw.status === 'ACTIVE' || raw.status === 'INACTIVE') ? { status: raw.status } : {})
     };
   }
 

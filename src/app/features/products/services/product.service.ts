@@ -84,11 +84,6 @@ export class ProductService {
     return this.http.delete<BaseResponse<null>>(`${this.apiUrl}/${id}`).pipe(map(() => void 0));
   }
 
-  updateProductStatus(id: string, status: Product['status']): Observable<Product> {
-    return this.http
-      .patch<BaseResponse<Product>>(`${this.apiUrl}/${id}/status`, { status })
-      .pipe(map((response) => this.normalizeProduct(response.data)));
-  }
 
   private toBackendRequest(request: ProductCreateRequest | ProductUpdateRequest): Record<string, unknown> {
     const { price, ...rest } = request;

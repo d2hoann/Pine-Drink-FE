@@ -128,7 +128,7 @@
             <td data-label="Thao tác">
               <div class="row-actions" style="justify-content: center;">
                 <button id="edit-variant-{{ variant.id }}" type="button" class="action-btn" (click)="$event.stopPropagation(); openEditDrawer(variant)">Sửa</button>
-                <button id="toggle-variant-{{ variant.id }}" type="button" class="action-btn" (click)="$event.stopPropagation(); toggleStatus(variant)">{{ variant.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}</button>
+
                 <button id="delete-variant-{{ variant.id }}" type="button" class="action-btn danger" (click)="$event.stopPropagation(); deleteVariant(variant)">Xóa</button>
               </div>
             </td>
@@ -180,6 +180,13 @@
 
     <label>Thứ tự hiển thị
       <input id="variant-display-order-input" type="number" min="0" formControlName="displayOrder" />
+    </label>
+
+    <label *ngIf="selectedVariant">Trạng thái
+      <app-combobox inputId="variant-status-input" formControlName="status" label="Trạng thái biến thể" placeholder="Trạng thái biến thể">
+        <ng-template comboOption value="ACTIVE" label="Bật"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Ẩn"></ng-template>
+      </app-combobox>
     </label>
 
     <div class="drawer-actions">

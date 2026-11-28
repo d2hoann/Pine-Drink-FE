@@ -145,10 +145,9 @@
               <button
                 type="button"
                 class="icon-btn status-toggle"
-                [class.restore]="product.status === 'INACTIVE'"
-                [attr.aria-label]="(product.status === 'ACTIVE' ? 'Ẩn ' : 'Bật lại ') + product.name"
-                (click)="stopRowAction($event); toggleProductStatus(product)">
-                <span class="material-symbols-outlined">{{ product.status === 'ACTIVE' ? 'visibility_off' : 'visibility' }}</span>
+                [attr.aria-label]="'Xóa ' + product.name"
+                (click)="stopRowAction($event); deleteProduct(product)">
+                <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
           </td>
@@ -189,9 +188,7 @@
       </span>
       <div class="row-actions compact" (click)="stopRowAction($event)">
         <button type="button" class="mini-btn" (click)="editProduct(product.id)">Sửa</button>
-        <button type="button" class="mini-btn status-toggle" [class.restore]="product.status === 'INACTIVE'" (click)="toggleProductStatus(product)">
-          {{ product.status === 'ACTIVE' ? 'Ẩn' : 'Bật lại' }}
-        </button>
+        <button type="button" class="mini-btn status-toggle" (click)="deleteProduct(product)">Xóa</button>
       </div>
     </article>
   </div>

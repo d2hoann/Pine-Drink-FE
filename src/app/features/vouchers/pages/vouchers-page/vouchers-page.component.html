@@ -31,6 +31,12 @@
     <label>Mã giảm giá<input id="voucherCode" formControlName="code" placeholder="PINE20" /></label>
     <label>Tên chiến dịch<input id="voucherName" formControlName="name" placeholder="Giảm 20% trà dứa" /></label>
     <label class="wide">Mô tả<input id="voucherDescription" formControlName="description" placeholder="Áp dụng cho đơn từ..." /></label>
+    <label *ngIf="editing">Trạng thái
+      <app-combobox inputId="voucherFormStatus" formControlName="status" label="Trạng thái ưu đãi" placeholder="Trạng thái ưu đãi">
+        <ng-template comboOption value="ACTIVE" label="Đang áp dụng"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Đã tắt"></ng-template>
+      </app-combobox>
+    </label>
     <label>Loại giảm
       <app-combobox inputId="voucherFormDiscountType" formControlName="discountType" label="Loại giảm giá" placeholder="Loại giảm giá">
         <ng-template comboOption value="PERCENTAGE" label="Theo phần trăm"></ng-template>
@@ -122,7 +128,7 @@
 
     <div class="ticket-actions">
       <button type="button" class="ticket-btn edit" (click)="$event.stopPropagation(); openEdit(voucher)"><span>✎</span> Sửa</button>
-      <button type="button" class="ticket-btn toggle" (click)="$event.stopPropagation(); updateStatus(voucher, voucher.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')"><span>{{ voucher.status === 'ACTIVE' ? '⏸' : '▶' }}</span> {{ voucher.status === 'ACTIVE' ? 'Tắt' : 'Bật' }}</button>
+
       <button type="button" class="ticket-btn danger" (click)="$event.stopPropagation(); remove(voucher)"><span>🗑</span></button>
     </div>
   </article>

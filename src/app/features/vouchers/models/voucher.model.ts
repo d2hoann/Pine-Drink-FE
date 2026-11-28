@@ -1,5 +1,5 @@
 export type VoucherDiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT' | string;
-export type VoucherStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'DELETED' | string;
+export type VoucherStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | string;
 
 export interface VoucherResponse {
   id: string;
@@ -34,6 +34,7 @@ export interface VoucherPayload {
   startAt: string;
   endAt: string;
   branchIds?: string[];
+  status?: VoucherStatus;
 }
 
 export interface VoucherSearchParams {

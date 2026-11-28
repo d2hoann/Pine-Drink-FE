@@ -24,7 +24,8 @@ export class ProductToppingsPageComponent implements OnInit {
   readonly form = this.formBuilder.nonNullable.group({
     toppingId: ['', Validators.required],
     isDefault: [false],
-    maxQuantity: [1, [Validators.required, Validators.min(1), Validators.max(20)]]
+    maxQuantity: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
+    status: ['ACTIVE' as ProductToppingSummary['status']]
   });
 
   products: ProductSummary[] = [];
@@ -100,7 +101,7 @@ export class ProductToppingsPageComponent implements OnInit {
     }
 
     this.selectedProductTopping = null;
-    this.form.reset({ toppingId: this.availableToppings[0]?.id || '', isDefault: false, maxQuantity: 1 });
+    this.form.reset({ toppingId: this.availableToppings[0]?.id || '', isDefault: false, maxQuantity: 1, status: 'ACTIVE' });
     this.form.controls.toppingId.enable();
     this.drawerOpen = true;
   }
@@ -115,7 +116,7 @@ export class ProductToppingsPageComponent implements OnInit {
       .subscribe({
         next: (detail) => {
           this.selectedProductTopping = detail;
-          this.form.reset({ toppingId: detail.toppingId, isDefault: detail.isDefault, maxQuantity: detail.maxQuantity || 1 });
+          this.form.reset({ toppingId: detail.toppingId, isDefault: detail.isDefault, maxQuantity: detail.maxQuantity || 1, status: detail.status });
           this.form.controls.toppingId.disable();
           this.drawerOpen = true;
         },
@@ -143,9 +144,14 @@ export class ProductToppingsPageComponent implements OnInit {
     const request$ = this.selectedProductTopping
       ? this.productToppingService.updateProductTopping(this.selectedProductId, this.selectedProductTopping.id, {
         isDefault: payload.isDefault,
-        maxQuantity: payload.maxQuantity
+        maxQuantity: payload.maxQuantity,
+        status: payload.status
       })
-      : this.productToppingService.assignProductTopping(this.selectedProductId, payload);
+      : this.productToppingService.assignProductTopping(this.selectedProductId, {
+        toppingId: payload.toppingId,
+        isDefault: payload.isDefault,
+        maxQuantity: payload.maxQuantity
+      });
 
     this.saving = true;
     this.errorMessage = '';
@@ -163,31 +169,16 @@ export class ProductToppingsPageComponent implements OnInit {
       });
   }
 
-  toggleStatus(item: ProductToppingSummary): void {
-    if (!this.selectedProductId) { return; }
-    const status = item.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    this.loading = true;
-    this.errorMessage = '';
-
-    this.productToppingService.updateProductToppingStatus(this.selectedProductId, item.id, { status })
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: () => this.loadProductToppings(this.pageData.page),
-        error: () => {
-          this.errorMessage = 'Không đổi được trạng thái phần thêm của sản phẩm.';
-        }
-      });
-  }
 
   deleteProductTopping(item: ProductToppingSummary): void {
     if (!this.selectedProductId) { return; }
 
     this.confirmDialog.confirm({
-      title: 'Xác nhận gỡ phần thêm?',
-      message: `Phần thêm ${item.toppingName} sẽ được gỡ khỏi sản phẩm.`,
-      confirmText: 'Gỡ phần thêm',
+      title: 'Xác nhận xóa phần thêm khỏi sản phẩm?',
+      message: `Phần thêm ${item.toppingName} sẽ bị xóa vĩnh viễn khỏi sản phẩm và không thể hoàn tác.`,
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
-      type: 'warning',
+      type: 'danger',
       affectedItems: [item.toppingName]
     }).subscribe((confirmed) => {
       if (!confirmed) return;
@@ -198,9 +189,9 @@ export class ProductToppingsPageComponent implements OnInit {
       this.productToppingService.deleteProductTopping(this.selectedProductId, item.id)
         .pipe(finalize(() => (this.loading = false)))
         .subscribe({
-          next: () => this.loadProductToppings(this.pageData.page),
-          error: () => {
-            this.errorMessage = 'Không gỡ được phần thêm khỏi sản phẩm.';
+          next: () => {
+            const page = this.productToppings.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+            this.loadProductToppings(page);
           }
         });
     });

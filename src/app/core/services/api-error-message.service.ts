@@ -24,6 +24,7 @@ export class ApiErrorMessageService {
     COM_003: 'Dữ liệu gửi lên không đúng định dạng.',
     COM_004: 'Tham số yêu cầu chưa hợp lệ.',
     COM_005: 'Không tìm thấy dữ liệu phù hợp.',
+    COM_006: 'Dữ liệu đang được sử dụng nên không thể xóa.',
     AUTH_001: 'Tên đăng nhập/email hoặc mật khẩu chưa đúng.',
     AUTH_002: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.',
     AUTH_003: 'Thông tin xác thực không hợp lệ. Vui lòng đăng nhập lại.',

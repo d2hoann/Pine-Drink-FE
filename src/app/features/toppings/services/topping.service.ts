@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { BaseResponse } from '../../../shared/models/base-response.model';
 import { PageResponse } from '../../../shared/models/page-response.model';
-import { Topping, ToppingCreateRequest, ToppingStatusRequest, ToppingUpdateRequest } from '../models/topping.model';
+import { Topping, ToppingCreateRequest, ToppingUpdateRequest } from '../models/topping.model';
 
 @Injectable({ providedIn: 'root' })
 export class ToppingService {
@@ -49,11 +49,6 @@ export class ToppingService {
       .pipe(map((response) => this.normalizeTopping(response.data)));
   }
 
-  updateToppingStatus(id: string, request: ToppingStatusRequest): Observable<Topping> {
-    return this.http
-      .patch<BaseResponse<Topping>>(`${this.toppingsUrl}/${id}/status`, request)
-      .pipe(map((response) => this.normalizeTopping(response.data)));
-  }
 
   deleteTopping(id: string): Observable<void> {
     return this.http.delete<BaseResponse<null>>(`${this.toppingsUrl}/${id}`).pipe(map(() => void 0));

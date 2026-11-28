@@ -117,9 +117,7 @@
             <td>
               <div class="row-actions">
                 <button id="edit-topping-master-{{ topping.id }}" type="button" class="mini-btn" (click)="$event.stopPropagation(); openEditDrawer(topping)">Sửa</button>
-                <button id="toggle-topping-master-{{ topping.id }}" type="button" class="mini-btn" (click)="$event.stopPropagation(); toggleStatus(topping)" [disabled]="loading">
-                  {{ topping.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}
-                </button>
+
                 <button id="delete-topping-master-{{ topping.id }}" type="button" class="mini-btn danger" (click)="$event.stopPropagation(); deleteTopping(topping)" [disabled]="loading">Xóa</button>
               </div>
             </td>
@@ -156,7 +154,7 @@
         </div>
         <div class="row-actions compact">
           <button type="button" class="mini-btn" (click)="$event.stopPropagation(); openEditDrawer(topping)">Sửa</button>
-          <button type="button" class="mini-btn" (click)="$event.stopPropagation(); toggleStatus(topping)" [disabled]="loading">{{ topping.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}</button>
+
           <button type="button" class="mini-btn danger" (click)="$event.stopPropagation(); deleteTopping(topping)" [disabled]="loading">Xóa</button>
         </div>
       </article>
@@ -220,6 +218,14 @@
     <label>
       <span>Ảnh phần thêm</span>
       <input id="topping-master-image-input" type="url" formControlName="imageUrl" placeholder="https://...">
+    </label>
+
+    <label *ngIf="selectedTopping">
+      <span>Trạng thái</span>
+      <app-combobox inputId="topping-master-status-input" formControlName="status" label="Trạng thái phần thêm" placeholder="Trạng thái phần thêm">
+        <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+      </app-combobox>
     </label>
 
     <footer>

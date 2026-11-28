@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { BaseResponse } from '../../../shared/models/base-response.model';
 import { PageResponse } from '../../../shared/models/page-response.model';
 import { loadAllPages } from '../../../shared/utils/load-all-pages';
-import { BranchCreateRequest, BranchStatusUpdateRequest, BranchUpdateRequest } from '../models/branch-request.model';
+import { BranchCreateRequest, BranchUpdateRequest } from '../models/branch-request.model';
 import { BranchHours, BranchHoursRequest } from '../models/branch-hours.model';
 import { Branch } from '../models/branch.model';
 
@@ -87,16 +87,8 @@ export class BranchService {
     return this.http.put<BaseResponse<Branch>>(`${this.apiUrl}/${id}`, request).pipe(map((response) => response.data));
   }
 
-  updateBranchStatus(id: string, request: BranchStatusUpdateRequest): Observable<Branch> {
-    return this.http.patch<BaseResponse<Branch>>(`${this.apiUrl}/${id}/status`, request).pipe(map((response) => response.data));
-  }
-
-  closeBranch(id: string): Observable<Branch> {
-    return this.updateBranchStatus(id, { status: 'INACTIVE' });
-  }
-
-  restoreBranch(id: string): Observable<Branch> {
-    return this.updateBranchStatus(id, { status: 'ACTIVE' });
+  deleteBranch(id: string): Observable<void> {
+    return this.http.delete<BaseResponse<null>>(`${this.apiUrl}/${id}`).pipe(map(() => void 0));
   }
 
   getBranchHours(branchId: string): Observable<BranchHours[]> {

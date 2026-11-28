@@ -1,466 +1,202 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { Subscription, TimeoutError, finalize, timeout, timer } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize, forkJoin } from 'rxjs';
 
 import { AccessControlService } from '../../../../core/services/access-control.service';
 import { ToastService } from '../../../../core/services/toast.service';
-import { PageResponse } from '../../../../shared/models/page-response.model';
-import { Category } from '../../../categories/models/category.model';
-import { ReportJobResponse, ReportJobStatsResponse } from '../../models/report.model';
+import { Branch } from '../../../branches/models/branch.model';
+import { BranchService } from '../../../branches/services/branch.service';
+import { ProductSummary } from '../../../products/models/product.model';
+import { ProductService } from '../../../products/services/product.service';
+import { SalesDetailReportRequest, SalesDetailReportRow } from '../../models/report.model';
 import { ReportService } from '../../services/report.service';
-
-interface QuickStat {
-  label: string;
-  value: number;
-  status: 'total' | 'completed' | 'running' | 'failed';
-}
-
-type ExportStatus = 'idle' | 'creating' | 'processing' | 'downloading' | 'success' | 'error';
 
 @Component({
   selector: 'app-reports-page',
   templateUrl: './reports-page.component.html',
-  styleUrls: ['./reports-page.component.scss']
+  styleUrls: ['./sales-detail-report.layout.scss']
 })
-export class ReportsPageComponent implements OnInit, OnDestroy {
-  filterForm: FormGroup;
-  categories: Category[] = [];
-  reportHistory: ReportJobResponse[] = [];
-  quickStats: QuickStat[] = [
-    { label: 'Tổng báo cáo', value: 0, status: 'total' },
-    { label: 'Hoàn thành', value: 0, status: 'completed' },
-    { label: 'Đang xử lý', value: 0, status: 'running' },
-    { label: 'Thất bại', value: 0, status: 'failed' }
-  ];
+export class ReportsPageComponent implements OnInit {
+  readonly today = this.toDateInput(new Date());
+  readonly filterForm: FormGroup;
 
+  branches: Branch[] = [];
+  products: ProductSummary[] = [];
+  rows: SalesDetailReportRow[] = [];
   selectedFormat: 'PDF' | 'XLSX' = 'PDF';
-  isSubmitting = false;
+
+  page = 0;
+  size = 20;
+  totalElements = 0;
+  totalPages = 0;
+  isLoadingOptions = false;
+  isLoadingPreview = false;
+  previewError: string | null = null;
   isExporting = false;
-  isLoadingHistory = false;
-  exportStatus: ExportStatus = 'idle';
-  exportMessage = '';
-  private activeExportJobId: string | null = null;
-  private exportResetTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly downloadingJobIds = new Set<string>();
-  private readonly autoDownloadJobIds = new Set<string>();
-  private readonly reportActionTimeoutMs = 60000;
-
-  historyPage = 0;
-  historySize = 10;
-  historyTotalElements = 0;
-  historyTotalPages = 0;
-  historyFirst = true;
-  historyLast = true;
-
-  private pollSubs: Map<string, Subscription> = new Map();
+  exportQueued = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly reportService: ReportService,
-    private readonly toastService: ToastService,
-    private readonly accessControl: AccessControlService
+    private readonly branchService: BranchService,
+    private readonly productService: ProductService,
+    private readonly accessControl: AccessControlService,
+    private readonly toastService: ToastService
   ) {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     this.filterForm = this.fb.group({
-      categoryId: [''],
-      status: [''],
-      fromDate: [''],
-      toDate: ['']
+      branchId: ['', Validators.required],
+      fromDate: [this.toDateInput(firstDay), Validators.required],
+      toDate: [this.today, Validators.required],
+      productId: ['']
     });
   }
 
   ngOnInit(): void {
-    this.loadReportOptions();
-    this.loadReportHistory();
-  }
-
-  ngOnDestroy(): void {
-    this.pollSubs.forEach(sub => sub.unsubscribe());
-    this.clearExportResetTimer();
-  }
-
-  goToHistoryPage(page: number): void {
-    if (page < 0 || page >= this.historyTotalPages || page === this.historyPage || this.isLoadingHistory) return;
-    this.loadReportHistory(page);
-  }
-
-  changeHistorySize(size: number | string): void {
-    this.historySize = Number(size);
-    this.loadReportHistory(0);
-  }
-
-  getHistoryRangeLabel(): string {
-    if (this.historyTotalElements === 0) return '0 báo cáo';
-    const start = this.historyPage * this.historySize + 1;
-    const end = Math.min(start + this.reportHistory.length - 1, this.historyTotalElements);
-    return `${start}-${end} / ${this.historyTotalElements} báo cáo`;
-  }
-
-  applyFilter(): void {
-    if (!this.isValidDateRange()) return;
-    this.loadReportHistory(0);
-  }
-
-  resetFilter(): void {
-    this.filterForm.reset({ categoryId: '', status: '', fromDate: '', toDate: '' });
-    this.loadReportHistory(0);
+    this.isLoadingOptions = true;
+    forkJoin({
+      branches: this.branchService.getActiveBranchOptions(),
+      products: this.productService.getProductOptions()
+    }).pipe(finalize(() => (this.isLoadingOptions = false))).subscribe({
+      next: ({ branches, products }) => {
+        this.branches = branches;
+        this.products = products;
+        if (branches.length > 0) {
+          this.filterForm.patchValue({ branchId: branches[0].id });
+          this.loadPreview(0);
+        }
+      },
+      error: () => this.toastService.error('Không thể tải danh mục dùng cho báo cáo')
+    });
   }
 
   get canCreateReport(): boolean {
     return this.accessControl.can('REPORT_CREATE');
   }
 
-  createReport(): void {
-    if (!this.canCreateReport) {
-      this.toastService.error('Bạn không có quyền tạo báo cáo');
-      return;
-    }
+  get reportTotal(): number {
+    return Number(this.rows[0]?.reportTotal || 0);
+  }
 
-    if (this.isExporting) return;
+  applyFilter(): void {
+    this.loadPreview(0);
+  }
 
-    this.isSubmitting = true;
-    this.setExportState('creating', 'Đang tạo báo cáo...');
-    this.toastService.info('Bắt đầu xuất báo cáo. Hệ thống đang tạo tệp trong nền.');
+  resetFilter(): void {
+    const now = new Date();
+    this.filterForm.reset({
+      branchId: this.branches[0]?.id || '',
+      fromDate: this.toDateInput(new Date(now.getFullYear(), now.getMonth(), 1)),
+      toDate: this.today,
+      productId: ''
+    });
+    if (this.filterForm.value.branchId) this.loadPreview(0);
+  }
 
-    const filters = this.filterForm.value;
-    const request = {
-      reportType: 'PRODUCT_CATALOG',
-      fileFormat: this.selectedFormat,
-      branchId: null,
-      filters: JSON.stringify({
-        status: filters.status || null,
-        categoryId: filters.categoryId || null,
-        fromDate: filters.fromDate || null,
-        toDate: filters.toDate || null
-      })
-    };
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages || page === this.page || this.isLoadingPreview) return;
+    this.loadPreview(page);
+  }
 
-    this.reportService.createJob(request)
-      .pipe(
-        timeout(this.reportActionTimeoutMs),
-        finalize(() => (this.isSubmitting = false))
-      )
+  changePageSize(size: number | string): void {
+    this.size = Number(size);
+    this.loadPreview(0);
+  }
+
+  exportReport(): void {
+    const request = this.buildRequest();
+    if (!request || this.isExporting) return;
+
+    this.isExporting = true;
+    this.exportQueued = false;
+    this.reportService.exportSalesDetail(request)
+      .pipe(finalize(() => (this.isExporting = false)))
       .subscribe({
-        next: (job) => {
-          this.activeExportJobId = job.id;
-          this.setExportState('processing', 'Hệ thống đang tạo báo cáo, vui lòng không đóng trang.');
-          this.toastService.success('Đã gửi yêu cầu xuất báo cáo. Hệ thống đang xử lý trong nền.');
-          this.reportHistory.unshift(job);
-          this.loadReportStats();
-          this.autoDownloadJobIds.add(job.id);
-          this.startPolling(job.id);
+        next: (response) => {
+          if (response.status === 202) {
+            this.exportQueued = true;
+          } else if (response.body?.size) {
+            this.download(response.body, `bang-ke-chi-tiet-ban-hang.${request.fileFormat.toLowerCase()}`);
+            this.toastService.success('Đã tạo và tải báo cáo');
+          }
+        },
+        error: (error) => this.toastService.error(this.errorMessage(error, 'Không thể kết xuất báo cáo'))
+      });
+  }
+
+  formatDate(value: string): string {
+    return value ? new Date(value).toLocaleString('vi-VN') : '—';
+  }
+
+  orderTypeLabel(value: string): string {
+    return value === 'DELIVERY' ? 'Giao hàng' : 'Tại quầy';
+  }
+
+  private loadPreview(page: number): void {
+    const request = this.buildRequest();
+    if (!request) return;
+
+    this.previewError = null;
+    this.isLoadingPreview = true;
+    this.reportService.previewSalesDetail(request, page, this.size)
+      .pipe(finalize(() => (this.isLoadingPreview = false)))
+      .subscribe({
+        next: (result) => {
+          this.rows = result.content || [];
+          this.page = result.page;
+          this.size = result.size;
+          this.totalElements = result.totalElements;
+          this.totalPages = result.totalPages;
         },
         error: (error) => {
-          this.setExportState('error', 'Xuất báo cáo thất bại');
-          this.toastService.error(this.getReportErrorMessage(error, 'Không thể tạo báo cáo'));
-          this.scheduleExportReset();
+          this.rows = [];
+          this.totalElements = 0;
+          this.totalPages = 0;
+          this.previewError = this.errorMessage(error, 'Không thể tải dữ liệu xem trước. Vui lòng thử lại.');
         }
       });
   }
 
-  downloadReport(job: ReportJobResponse, fromAutoExport = false): void {
-    if (job.status !== 'DONE' || this.isDownloading(job.id)) return;
-
-    this.downloadingJobIds.add(job.id);
-    if (fromAutoExport) {
-      this.setExportState('downloading', 'Đang tải xuống báo cáo...');
+  private buildRequest(): SalesDetailReportRequest | null {
+    this.filterForm.markAllAsTouched();
+    if (this.filterForm.invalid) {
+      this.toastService.warning('Vui lòng chọn chi nhánh và khoảng ngày');
+      return null;
     }
 
-    this.reportService.downloadJob(job.id)
-      .pipe(
-        timeout(this.reportActionTimeoutMs),
-        finalize(() => this.downloadingJobIds.delete(job.id))
-      )
-      .subscribe({
-        next: (blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `product-catalog-${job.id}.${job.fileFormat.toLowerCase()}`;
-          link.click();
-          URL.revokeObjectURL(url);
-          this.toastService.success('Xuất báo cáo thành công. Tệp đã được tải xuống.');
-          if (fromAutoExport) {
-            this.setExportState('success', 'Xuất báo cáo thành công');
-            this.scheduleExportReset();
-          }
-        },
-        error: (error) => {
-          this.toastService.error(this.getReportErrorMessage(error, 'Không thể tải xuống báo cáo'));
-          if (fromAutoExport) {
-            this.setExportState('error', 'Xuất báo cáo thất bại');
-            this.scheduleExportReset();
-          }
-        }
-      });
-  }
-
-  isDownloading(jobId: string): boolean {
-    return this.downloadingJobIds.has(jobId);
-  }
-
-  getExportButtonText(): string {
-    const textMap: Record<ExportStatus, string> = {
-      idle: 'Xuất báo cáo',
-      creating: 'Đang tạo báo cáo...',
-      processing: 'Đang tạo báo cáo...',
-      downloading: 'Đang tải xuống...',
-      success: 'Xuất báo cáo thành công',
-      error: 'Xuất báo cáo thất bại'
-    };
-    return textMap[this.exportStatus];
-  }
-
-  shouldShowExportSpinner(): boolean {
-    return this.exportStatus === 'creating' || this.exportStatus === 'processing' || this.exportStatus === 'downloading';
-  }
-
-  retryReport(job: ReportJobResponse): void {
-    if (job.status !== 'FAILED') return;
-    // Implementation would re-submit with same parameters
-    this.toastService.info('Tính năng đang phát triển');
-  }
-
-  getStatusBadgeClass(status: string): string {
-    const statusMap: Record<string, string> = {
-      PENDING: 'badge-pending',
-      RUNNING: 'badge-running',
-      DONE: 'badge-completed',
-      FAILED: 'badge-failed'
-    };
-    return statusMap[status] || 'badge-pending';
-  }
-
-  getStatusLabel(status: string): string {
-    const labelMap: Record<string, string> = {
-      PENDING: 'Chờ xử lý',
-      RUNNING: 'Đang xử lý',
-      DONE: 'Hoàn thành',
-      FAILED: 'Thất bại'
-    };
-    return labelMap[status] || status;
-  }
-
-  formatDate(dateString: string | null | undefined): string {
-    if (!dateString) return '—';
-    const date = new Date(dateString);
-    return date.toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  private loadReportOptions(): void {
-    this.reportService.getOptions().subscribe({
-      next: (options) => {
-        this.categories = options.categories.map((category) => this.normalizeCategoryOption(category));
-        this.applyQuickStats(options.stats);
-      },
-      error: () => {
-        this.toastService.warning('Không tải được dữ liệu khởi tạo báo cáo');
-        this.loadReportStats();
-      }
-    });
-  }
-
-  private loadReportHistory(page = this.historyPage): void {
-    this.isLoadingHistory = true;
-    const filters = this.filterForm.value;
-    this.reportService.getJobHistory(page, this.historySize, filters.fromDate || null, filters.toDate || null).subscribe({
-      next: (pageData) => {
-        const normalizedPage = this.normalizeHistoryPage(pageData, page);
-
-        this.historyPage = normalizedPage.page;
-        this.historySize = normalizedPage.size;
-        this.historyTotalElements = normalizedPage.totalElements;
-        this.historyTotalPages = normalizedPage.totalPages;
-        this.historyFirst = normalizedPage.first;
-        this.historyLast = normalizedPage.last;
-        this.reportHistory = normalizedPage.content;
-        this.isLoadingHistory = false;
-
-        this.reportHistory
-          .filter(job => job.status === 'RUNNING' || job.status === 'PENDING')
-          .forEach(job => this.startPolling(job.id));
-      },
-      error: () => {
-        this.reportHistory = [];
-        this.historyTotalElements = 0;
-        this.historyTotalPages = 0;
-        this.historyFirst = true;
-        this.historyLast = true;
-        this.updateQuickStatsFromHistoryFallback();
-        this.isLoadingHistory = false;
-        this.toastService.error('Không thể tải lịch sử báo cáo');
-      }
-    });
-  }
-
-  private normalizeHistoryPage(
-    pageData: PageResponse<ReportJobResponse> | null | undefined,
-    fallbackPage: number
-  ): PageResponse<ReportJobResponse> {
-    const content = Array.isArray(pageData?.content) ? pageData?.content ?? [] : [];
+    const value = this.filterForm.value;
+    if (value.fromDate > value.toDate) {
+      this.toastService.warning('Từ ngày phải nhỏ hơn hoặc bằng đến ngày');
+      return null;
+    }
     return {
-      content,
-      page: pageData?.page ?? fallbackPage,
-      size: pageData?.size ?? this.historySize,
-      totalElements: pageData?.totalElements ?? content.length,
-      totalPages: pageData?.totalPages ?? (content.length ? 1 : 0),
-      first: pageData?.first ?? fallbackPage === 0,
-      last: pageData?.last ?? true
+      branchId: value.branchId,
+      fromDate: value.fromDate,
+      toDate: value.toDate,
+      productId: value.productId || null,
+      fileFormat: this.selectedFormat
     };
   }
 
-  private updateQuickStatsFromHistoryFallback(): void {
-    this.quickStats[0].value = this.historyTotalElements || this.reportHistory.length;
-    this.quickStats[1].value = this.reportHistory.filter(j => j.status === 'DONE').length;
-    this.quickStats[2].value = this.reportHistory.filter(j => this.isJobInProgress(j.status)).length;
-    this.quickStats[3].value = this.reportHistory.filter(j => j.status === 'FAILED').length;
+  private download(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
-  private isValidDateRange(): boolean {
-    const { fromDate, toDate } = this.filterForm.value;
-    if (fromDate && toDate && fromDate > toDate) {
-      this.toastService.warning('Từ ngày phải nhỏ hơn hoặc bằng Đến ngày');
-      return false;
-    }
-    return true;
+  private toDateInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
-  private loadReportStats(): void {
-    this.reportService.getJobStats().subscribe({
-      next: (stats) => this.applyQuickStats(stats),
-      error: () => this.updateQuickStatsFromHistoryFallback()
-    });
-  }
-
-  private applyQuickStats(stats: ReportJobStatsResponse): void {
-    this.quickStats[0].value = stats.total;
-    this.quickStats[1].value = stats.completed;
-    this.quickStats[2].value = stats.running;
-    this.quickStats[3].value = stats.failed;
-  }
-
-  private normalizeCategoryOption(category: Partial<Category>): Category {
-    return {
-      id: category.id || '',
-      code: category.code || 'AUTO',
-      name: category.name || 'Danh mục chưa đặt tên',
-      description: category.description || '',
-      imageUrl: category.imageUrl || '',
-      displayOrder: Number(category.displayOrder) || 0,
-      status: (category.status || 'ACTIVE') as Category['status']
-    };
-  }
-
-  private startPolling(jobId: string): void {
-    if (this.pollSubs.has(jobId)) return;
-
-    let attempts = 0;
-    const maxAttempts = 40;
-
-    const sub = timer(0, 3000).subscribe(() => {
-      attempts += 1;
-      this.reportService.getJob(jobId).subscribe({
-        next: (job) => {
-          this.upsertReportJob(job);
-
-          if (job.status === 'DONE' || job.status === 'FAILED') {
-            this.stopPolling(jobId);
-
-            if (job.status === 'DONE') {
-              this.toastService.success(`Báo cáo ${jobId} đã hoàn thành`);
-              if (this.autoDownloadJobIds.delete(jobId)) {
-                this.downloadReport(job, true);
-              }
-            } else {
-              this.autoDownloadJobIds.delete(jobId);
-              if (this.activeExportJobId === jobId) {
-                this.setExportState('error', 'Xuất báo cáo thất bại');
-                this.scheduleExportReset();
-              }
-              this.toastService.error(job.errorMessage || `Báo cáo ${jobId} thất bại`);
-            }
-            return;
-          }
-
-          if (!this.isJobInProgress(job.status) || attempts >= maxAttempts) {
-            this.stopPolling(jobId);
-            if (this.activeExportJobId === jobId) {
-              this.setExportState('error', 'Xuất báo cáo thất bại');
-              this.scheduleExportReset();
-            }
-            this.toastService.warning('Đã dừng theo dõi báo cáo. Vui lòng tải lại lịch sử để kiểm tra trạng thái mới nhất.');
-          }
-        },
-        error: () => {
-          this.stopPolling(jobId);
-          if (this.activeExportJobId === jobId) {
-            this.setExportState('error', 'Xuất báo cáo thất bại');
-            this.scheduleExportReset();
-          }
-          this.toastService.warning('Không thể cập nhật trạng thái báo cáo. Đã dừng tự động theo dõi.');
-        }
-      });
-    });
-
-    this.pollSubs.set(jobId, sub);
-  }
-
-  private upsertReportJob(job: ReportJobResponse): void {
-    const index = this.reportHistory.findIndex(j => j.id === job.id);
-    if (index !== -1) {
-      this.reportHistory[index] = job;
-    } else {
-      this.reportHistory.unshift(job);
-    }
-  }
-
-  private stopPolling(jobId: string): void {
-    this.pollSubs.get(jobId)?.unsubscribe();
-    this.pollSubs.delete(jobId);
-  }
-
-  private isJobInProgress(status: string): boolean {
-    return status === 'RUNNING' || status === 'PENDING';
-  }
-
-  private setExportState(status: ExportStatus, message: string): void {
-    this.clearExportResetTimer();
-    this.exportStatus = status;
-    this.exportMessage = message;
-    this.isExporting = status === 'creating' || status === 'processing' || status === 'downloading';
-  }
-
-  private scheduleExportReset(): void {
-    this.clearExportResetTimer();
-    this.exportResetTimer = setTimeout(() => this.resetExportState(), 2500);
-  }
-
-  private resetExportState(): void {
-    this.isExporting = false;
-    this.exportStatus = 'idle';
-    this.exportMessage = '';
-    this.activeExportJobId = null;
-  }
-
-  private clearExportResetTimer(): void {
-    if (!this.exportResetTimer) return;
-    clearTimeout(this.exportResetTimer);
-    this.exportResetTimer = null;
-  }
-
-  private getReportErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof TimeoutError) {
-      return `${fallback}: quá thời gian phản hồi. Vui lòng thử lại sau.`;
-    }
-
-    const apiMessage = (error as { error?: { message?: string }; message?: string })?.error?.message
-      || (error as { message?: string })?.message;
-
-    return apiMessage || fallback;
+  private errorMessage(error: unknown, fallback: string): string {
+    const response = error as { message?: string; error?: { message?: string } } | null;
+    return response?.error?.message || response?.message || fallback;
   }
 }

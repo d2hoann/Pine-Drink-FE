@@ -30,8 +30,5 @@ export interface ProductToppingAssignRequest {
 export interface ProductToppingUpdateRequest {
   isDefault?: boolean;
   maxQuantity?: number;
-}
-
-export interface ProductToppingStatusRequest {
-  status: ProductToppingStatus;
+  status?: ProductToppingStatus;
 }

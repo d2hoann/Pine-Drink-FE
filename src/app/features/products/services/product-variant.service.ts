@@ -9,7 +9,6 @@ import { PageResponse } from '../../../shared/models/page-response.model';
 import {
   ProductVariant,
   ProductVariantCreateRequest,
-  ProductVariantStatusRequest,
   ProductVariantSummary,
   ProductVariantUpdateRequest
 } from '../models/product-variant.model';
@@ -81,17 +80,6 @@ export class ProductVariantService {
       );
   }
 
-  updateVariantStatus(productId: string, variantId: string, request: ProductVariantStatusRequest): Observable<ProductVariant> {
-    return this.http
-      .patch<BaseResponse<ProductVariant>>(`${this.variantsUrl(productId)}/${variantId}/status`, request)
-      .pipe(
-        map((response) => this.normalizeVariant(response.data)),
-        map((variant) => {
-          this.invalidateCache(productId);
-          return variant;
-        })
-      );
-  }
 
   deleteVariant(productId: string, variantId: string): Observable<void> {
     return this.http.delete<BaseResponse<null>>(`${this.variantsUrl(productId)}/${variantId}`).pipe(

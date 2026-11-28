@@ -10,8 +10,5 @@ export interface CategoryUpdateRequest {
   description?: string;
   imageUrl?: string;
   displayOrder?: number;
-}
-
-export interface CategoryStatusRequest {
-  status: string;
+  status?: 'ACTIVE' | 'INACTIVE';
 }

@@ -24,8 +24,5 @@ export interface ToppingUpdateRequest {
   price?: number;
   imageUrl?: string;
   groupName?: string;
-}
-
-export interface ToppingStatusRequest {
-  status: ToppingStatus;
+  status?: ToppingStatus;
 }

@@ -144,10 +144,7 @@
           <button id="edit-product-topping-{{ item.id }}" type="button" class="pt-icon-btn" (click)="openEditDrawer(item)" title="Sửa">
             <span class="material-symbols-outlined">edit</span>
           </button>
-          <button id="toggle-product-topping-{{ item.id }}" type="button" class="pt-state-btn" (click)="toggleStatus(item)">
-            <span class="material-symbols-outlined">{{ item.status === 'ACTIVE' ? 'visibility_off' : 'visibility' }}</span>
-            {{ item.status === 'ACTIVE' ? 'Ẩn' : 'Bật' }}
-          </button>
+
           <button id="delete-product-topping-{{ item.id }}" type="button" class="pt-icon-btn danger" (click)="deleteProductTopping(item)" title="Xóa cấu hình phần thêm">
             <span class="material-symbols-outlined">delete</span>
           </button>
@@ -194,6 +191,13 @@
     <label>Số lượng tối đa mỗi ly
       <input id="product-topping-max-quantity-input" type="number" min="1" max="20" formControlName="maxQuantity" />
       <small *ngIf="form.controls.maxQuantity.touched && form.controls.maxQuantity.invalid">Số lượng từ 1 đến 20.</small>
+    </label>
+
+    <label *ngIf="selectedProductTopping">Trạng thái
+      <app-combobox inputId="product-topping-status-input" formControlName="status" label="Trạng thái phần thêm" placeholder="Trạng thái phần thêm">
+        <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
+        <ng-template comboOption value="INACTIVE" label="Tạm ẩn"></ng-template>
+      </app-combobox>
     </label>
 
     <label class="switch-row">

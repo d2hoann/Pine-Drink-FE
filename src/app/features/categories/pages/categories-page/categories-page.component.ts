@@ -21,7 +21,8 @@ export class CategoriesPageComponent implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(150)]],
     description: ['', [Validators.maxLength(255)]],
     imageUrl: ['', [Validators.maxLength(1000)]],
-    displayOrder: [0, [Validators.min(0)]]
+    displayOrder: [0, [Validators.min(0)]],
+    status: ['ACTIVE' as 'ACTIVE' | 'INACTIVE']
   });
 
   categories: Category[] = [];
@@ -86,7 +87,7 @@ export class CategoriesPageComponent implements OnInit {
     this.selectedCategory = null;
     this.selectedImageFile = null;
     this.previewImageUrl = '';
-    this.form.reset({ name: '', description: '', imageUrl: '', displayOrder: this.nextDisplayOrder });
+    this.form.reset({ name: '', description: '', imageUrl: '', displayOrder: this.nextDisplayOrder, status: 'ACTIVE' });
     this.drawerOpen = true;
   }
 
@@ -104,7 +105,8 @@ export class CategoriesPageComponent implements OnInit {
             name: detail.name,
             description: detail.description || '',
             imageUrl: detail.imageUrl || '',
-            displayOrder: detail.displayOrder || 0
+            displayOrder: detail.displayOrder || 0,
+            status: detail.status
           });
           this.drawerOpen = true;
         },
@@ -129,13 +131,14 @@ export class CategoriesPageComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const { status, ...createPayload } = this.form.getRawValue();
+    const payload = { ...createPayload, status };
     this.saving = true;
     this.errorMessage = '';
 
     const request$ = this.selectedCategory
       ? this.categoryService.updateCategory(this.selectedCategory.id, payload, this.selectedImageFile || undefined)
-      : this.categoryService.createCategory(payload, this.selectedImageFile || undefined);
+      : this.categoryService.createCategory(createPayload, this.selectedImageFile || undefined);
 
     request$
       .pipe(finalize(() => (this.saving = false)))
@@ -150,36 +153,26 @@ export class CategoriesPageComponent implements OnInit {
       });
   }
 
-  toggleStatus(category: Category): void {
-    const nextStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    const isHiding = nextStatus === 'INACTIVE';
-
+  deleteCategory(category: Category): void {
     this.confirmDialog.confirm({
-      title: isHiding ? 'Xác nhận ẩn danh mục?' : 'Xác nhận hiện danh mục?',
-      message: `${isHiding ? 'Ẩn' : 'Hiện'} danh mục ${category.name}?`,
-      description: isHiding
-        ? 'Danh mục bị ẩn sẽ không hiển thị ở khu vực khách hàng.'
-        : 'Danh mục sẽ được hiển thị lại ở khu vực khách hàng.',
-      confirmText: isHiding ? 'Ẩn danh mục' : 'Hiện danh mục',
+      title: 'Xác nhận xóa danh mục?',
+      message: `Danh mục ${category.name} sẽ bị xóa vĩnh viễn và không thể hoàn tác.`,
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
-      type: isHiding ? 'warning' : 'info'
+      type: 'danger'
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
       this.loading = true;
       this.errorMessage = '';
 
-      this.categoryService.updateCategoryStatus(category.id, { status: nextStatus })
+      this.categoryService.deleteCategory(category.id)
         .pipe(finalize(() => (this.loading = false)))
         .subscribe({
           next: () => {
-            const actionText = nextStatus === 'ACTIVE' ? 'hiện' : 'ẩn';
-            this.toast.success(`Đã ${actionText} danh mục ${category.name}.`);
-            this.loadCategories(this.pageData.page);
-          },
-          error: () => {
-            this.errorMessage = 'Không đổi được trạng thái danh mục. Vui lòng thử lại.';
-            this.toast.error('Không đổi được trạng thái danh mục. Vui lòng thử lại.');
+            this.toast.success(`Đã xóa danh mục ${category.name}.`);
+            const page = this.categories.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+            this.loadCategories(page);
           }
         });
     });

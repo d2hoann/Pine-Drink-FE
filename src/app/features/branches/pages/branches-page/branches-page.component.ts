@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
 
 import { PageResponse } from '../../../../shared/models/page-response.model';
-import { BranchCreateRequest } from '../../models/branch-request.model';
+import { BranchUpdateRequest } from '../../models/branch-request.model';
 import { BranchHours } from '../../models/branch-hours.model';
 import { Branch } from '../../models/branch.model';
 import { BranchService } from '../../services/branch.service';
@@ -32,8 +32,11 @@ export class BranchesPageComponent implements OnInit {
     longitude: [null as number | null, [Validators.required]],
     supportsPickup: [true],
     supportsDelivery: [false],
-    averagePreparationMinutes: [15, [Validators.required, Validators.min(1), Validators.max(180)]]
+    averagePreparationMinutes: [15, [Validators.required, Validators.min(1), Validators.max(180)]],
+    status: ['ACTIVE']
   });
+
+  readonly formStatusOptions = ['ACTIVE', 'INACTIVE'];
 
   readonly branchHoursForm = this.formBuilder.nonNullable.group({
     dayOfWeek: [1, [Validators.required, Validators.min(1), Validators.max(7)]],
@@ -151,7 +154,8 @@ export class BranchesPageComponent implements OnInit {
       longitude: null,
       supportsPickup: true,
       supportsDelivery: false,
-      averagePreparationMinutes: 15
+      averagePreparationMinutes: 15,
+      status: 'ACTIVE'
     });
   }
 
@@ -178,7 +182,8 @@ export class BranchesPageComponent implements OnInit {
             longitude: detail.longitude ?? null,
             supportsPickup: detail.supportsPickup ?? true,
             supportsDelivery: detail.supportsDelivery ?? false,
-            averagePreparationMinutes: detail.averagePreparationMinutes || 15
+            averagePreparationMinutes: detail.averagePreparationMinutes || 15,
+            status: detail.status
           });
         }
       });
@@ -218,36 +223,22 @@ export class BranchesPageComponent implements OnInit {
       });
   }
 
-  closeBranch(branch: Branch): void {
+  deleteBranch(branch: Branch): void {
     this.confirmDialog.confirm({
-      title: 'Xác nhận đóng chi nhánh?',
-      message: `Chi nhánh ${branch.name} sẽ tạm ngưng nhận đơn.`,
-      confirmText: 'Đóng chi nhánh',
+      title: 'Xác nhận xóa chi nhánh?',
+      message: `Chi nhánh ${branch.name} sẽ bị xóa vĩnh viễn và không thể hoàn tác.`,
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
-      type: 'warning',
+      type: 'danger',
       affectedItems: [branch.name]
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
-      this.branchService.closeBranch(branch.id).subscribe({
-        next: () => this.loadBranches(this.pageData.page)
-      });
-    });
-  }
-
-  restoreBranch(branch: Branch): void {
-    this.confirmDialog.confirm({
-      title: 'Xác nhận mở lại chi nhánh?',
-      message: `Chi nhánh ${branch.name} sẽ hoạt động trở lại.`,
-      confirmText: 'Mở lại',
-      cancelText: 'Hủy',
-      type: 'success',
-      affectedItems: [branch.name]
-    }).subscribe((confirmed) => {
-      if (!confirmed) return;
-
-      this.branchService.restoreBranch(branch.id).subscribe({
-        next: () => this.loadBranches(this.pageData.page)
+      this.branchService.deleteBranch(branch.id).subscribe({
+        next: () => {
+          const page = this.branches.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+          this.loadBranches(page);
+        }
       });
     });
   }
@@ -494,9 +485,10 @@ export class BranchesPageComponent implements OnInit {
     return sortedDays.map((day) => this.dayLabel(day).replace('Thứ ', 'T')).join(', ');
   }
 
-  private buildRequest(): BranchCreateRequest {
+  private buildRequest(): BranchUpdateRequest {
     const value = this.branchForm.getRawValue();
     return {
+      ...(this.editingBranch ? { status: value.status as 'ACTIVE' | 'INACTIVE' } : {}),
       name: value.name.trim(),
       address: value.address.trim(),
       phone: value.phone.trim() || undefined,

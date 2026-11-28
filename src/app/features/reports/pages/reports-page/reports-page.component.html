@@ -1,209 +1,157 @@
 <div class="report-page">
-  <!-- Header -->
-  <div class="report-header">
-    <h1 class="report-title">Báo cáo</h1>
-  </div>
-
-  <!-- Stats & Filter Section -->
-  <div class="stats-filter-section">
-    <div class="quick-stats">
-      <div class="stat-card" *ngFor="let stat of quickStats">
-        <span class="stat-label">{{ stat.label }}</span>
-        <strong class="stat-value">{{ stat.value }}</strong>
-      </div>
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">KINH DOANH</span>
+      <h1>Bảng kê chi tiết bán hàng</h1>
+      <p>Theo dõi từng mặt hàng thuộc đơn đã hoàn tất và kết xuất bằng Jasper.</p>
     </div>
+    <a class="process-link" routerLink="/admin/reports/processes">
+      <span class="material-symbols-outlined">schedule</span>
+      Tiến trình xuất báo cáo
+    </a>
+  </header>
 
-    <div class="divider"></div>
-
-    <form [formGroup]="filterForm" class="filter-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="categoryId">Danh mục sản phẩm</label>
-          <app-combobox inputId="categoryId" formControlName="categoryId" label="Danh mục" placeholder="Danh mục">
-            <ng-template comboOption value="" label="Tất cả danh mục"></ng-template>
-            <ng-template comboOption *ngFor="let category of categories" [value]="category.id" label="{{ category.name }}"></ng-template>
-          </app-combobox>
-        </div>
-
-        <div class="form-group">
-          <label for="productStatus">Trạng thái sản phẩm</label>
-          <app-combobox inputId="productStatus" formControlName="status" label="Trạng thái sản phẩm" placeholder="Trạng thái sản phẩm">
-            <ng-template comboOption value="" label="Tất cả"></ng-template>
-            <ng-template comboOption value="ACTIVE" label="Đang bán"></ng-template>
-            <ng-template comboOption value="INACTIVE" label="Ngừng bán"></ng-template>
-          </app-combobox>
-        </div>
-
-        <div class="form-group">
-          <label for="fromDate">Từ ngày</label>
-          <input
-            id="fromDate"
-            type="date"
-            formControlName="fromDate"
-            class="form-control"
-            [max]="filterForm.get('toDate')?.value || null">
-        </div>
-
-        <div class="form-group">
-          <label for="toDate">Đến ngày</label>
-          <input
-            id="toDate"
-            type="date"
-            formControlName="toDate"
-            class="form-control"
-            [min]="filterForm.get('fromDate')?.value || null">
-        </div>
+  <section class="filter-card">
+    <form [formGroup]="filterForm" class="filter-grid">
+      <div class="field">
+        <label for="reportBranch">Chi nhánh <span>*</span></label>
+        <app-combobox inputId="reportBranch" formControlName="branchId" label="Chi nhánh" placeholder="Chọn chi nhánh">
+          <ng-template comboOption *ngFor="let branch of branches" [value]="branch.id" [label]="branch.code + ' - ' + branch.name"></ng-template>
+        </app-combobox>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" (click)="resetFilter()">
-          Đặt lại
-        </button>
-        <button type="button" class="btn btn-primary" (click)="applyFilter()">
-          Lọc
+
+      <div class="field">
+        <label for="reportFromDate">Từ ngày <span>*</span></label>
+        <input id="reportFromDate" class="control" type="date" formControlName="fromDate" [max]="filterForm.value.toDate || today">
+      </div>
+
+      <div class="field">
+        <label for="reportToDate">Đến ngày <span>*</span></label>
+        <input id="reportToDate" class="control" type="date" formControlName="toDate" [min]="filterForm.value.fromDate" [max]="today">
+      </div>
+
+      <div class="field">
+        <label for="reportProduct">Sản phẩm</label>
+        <app-combobox inputId="reportProduct" formControlName="productId" label="Sản phẩm" placeholder="Tất cả sản phẩm">
+          <ng-template comboOption value="" label="Tất cả sản phẩm"></ng-template>
+          <ng-template comboOption *ngFor="let product of products" [value]="product.id" [label]="product.code + ' - ' + product.name"></ng-template>
+        </app-combobox>
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" class="button secondary" (click)="resetFilter()">Đặt lại</button>
+        <button type="button" class="button primary" [disabled]="isLoadingPreview || isLoadingOptions" (click)="applyFilter()">
+          <span class="material-symbols-outlined">search</span>
+          Xem báo cáo
         </button>
       </div>
     </form>
-  </div>
+  </section>
 
-  <!-- Create Report Section -->
-  <div class="create-section" *ngIf="canCreateReport">
-    <h2 class="section-title">Tạo báo cáo</h2>
-    
-    <div class="create-content">
-      <div class="format-selection">
-        <label>Định dạng xuất:</label>
-        <div class="format-options" role="group" aria-label="Định dạng xuất báo cáo">
-          <button 
-            type="button" 
-            class="format-btn"
-            [class.active]="selectedFormat === 'PDF'"
-            [disabled]="isExporting"
-            (click)="selectedFormat = 'PDF'">
-            PDF
-          </button>
-          <button 
-            type="button" 
-            class="format-btn"
-            [class.active]="selectedFormat === 'XLSX'"
-            [disabled]="isExporting"
-            (click)="selectedFormat = 'XLSX'">
-            Excel
-          </button>
-        </div>
-      </div>
+  <section class="summary-grid" *ngIf="!previewError">
+    <article>
+      <span>Số dòng dữ liệu</span>
+      <strong>{{ totalElements | number:'1.0-0' }}</strong>
+    </article>
+    <article>
+      <span>Tổng tiền hàng</span>
+      <strong>{{ reportTotal | number:'1.0-0' }} đ</strong>
+    </article>
+    <article>
+      <span>Khoảng báo cáo</span>
+      <strong>{{ filterForm.value.fromDate | date:'dd/MM/yyyy' }} - {{ filterForm.value.toDate | date:'dd/MM/yyyy' }}</strong>
+    </article>
+  </section>
 
-      <p class="create-note">
-        <span class="note-icon">ℹ️</span>
-        Báo cáo sẽ được xử lý trong nền và có thể tải xuống sau khi hoàn tất.
+  <section class="export-card" *ngIf="canCreateReport">
+    <div>
+      <h2>Tệp báo cáo</h2>
+      <p *ngIf="exportQueued" role="status">
+        Báo cáo đã vào hàng đợi. <a routerLink="/admin/reports/processes">Xem tiến trình</a>
       </p>
-
-      <div
-        class="report-action-panel"
-        [class.is-active]="exportStatus !== 'idle'"
-        [class.is-success]="exportStatus === 'success'"
-        [class.is-error]="exportStatus === 'error'"
-        aria-live="polite">
-        <button 
-          type="button" 
-          class="btn btn-create" 
-          id="createReportButton"
-          [class.is-success]="exportStatus === 'success'"
-          [class.is-error]="exportStatus === 'error'"
-          (click)="createReport()"
-          [disabled]="isExporting"
-          [attr.aria-busy]="isExporting">
-          <span class="btn-spinner" *ngIf="shouldShowExportSpinner()" aria-hidden="true"></span>
-          <span class="btn-state-icon" *ngIf="exportStatus === 'success'" aria-hidden="true">✓</span>
-          <span class="btn-state-icon" *ngIf="exportStatus === 'error'" aria-hidden="true">!</span>
-          <span>{{ getExportButtonText() }}</span>
-        </button>
-
-        <div class="export-status-box" *ngIf="exportStatus !== 'idle'">
-          <span class="inline-spinner" *ngIf="shouldShowExportSpinner()" aria-hidden="true"></span>
-          <span class="status-dot success" *ngIf="exportStatus === 'success'" aria-hidden="true">✓</span>
-          <span class="status-dot error" *ngIf="exportStatus === 'error'" aria-hidden="true">!</span>
-          <div>
-            <strong>{{ getExportButtonText() }}</strong>
-            <p>{{ exportMessage }}</p>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
+    <div class="export-controls">
+      <div class="format-switch" role="group" aria-label="Định dạng báo cáo">
+        <button type="button" [class.active]="selectedFormat === 'PDF'" [attr.aria-pressed]="selectedFormat === 'PDF'"
+                [disabled]="isExporting" (click)="selectedFormat = 'PDF'">PDF</button>
+        <button type="button" [class.active]="selectedFormat === 'XLSX'" [attr.aria-pressed]="selectedFormat === 'XLSX'"
+                [disabled]="isExporting" (click)="selectedFormat = 'XLSX'">Excel</button>
+      </div>
+      <button type="button" class="button primary" [disabled]="isExporting || filterForm.invalid" (click)="exportReport()">
+        <span class="material-symbols-outlined" aria-hidden="true">download</span>
+        {{ isExporting ? 'Đang kết xuất…' : 'Kết xuất' }}
+      </button>
+    </div>
+  </section>
 
-  <!-- Report History Table -->
-  <div class="history-section">
-    <h2 class="section-title">Lịch sử xuất báo cáo</h2>
+  <section class="table-card">
+    <div class="table-heading">
+      <div>
+        <h2>Dữ liệu xem trước</h2>
+        <p>Mỗi dòng là một mặt hàng thuộc đơn đã hoàn tất.</p>
+      </div>
+      <span *ngIf="!previewError">{{ totalElements | number:'1.0-0' }} dòng</span>
+    </div>
 
-    <div class="table-container" *ngIf="!isLoadingHistory">
-      <table class="report-table" *ngIf="reportHistory.length > 0; else emptyState">
+    <div class="loading" *ngIf="isLoadingPreview">Đang tải dữ liệu...</div>
+
+    <div class="empty preview-error" role="alert" *ngIf="previewError">
+      <span class="material-symbols-outlined" aria-hidden="true">error_outline</span>
+      <strong>{{ previewError }}</strong>
+    </div>
+
+    <div class="table-scroll" *ngIf="!isLoadingPreview && rows.length">
+      <table>
         <thead>
           <tr>
-            <th>Mã báo cáo</th>
-            <th>Loại báo cáo</th>
-            <th>Thời gian tạo</th>
-            <th>Trạng thái</th>
-            <th>Định dạng</th>
-            <th>Hành động</th>
+            <th>STT</th>
+            <th>Hoàn tất</th>
+            <th>Mã đơn</th>
+            <th>Sản phẩm</th>
+            <th>Biến thể</th>
+            <th class="number">SL</th>
+            <th class="number">Đơn giá</th>
+            <th class="number">Tiền hàng</th>
+            <th>Loại đơn</th>
+            <th>Thanh toán</th>
+            <th>Khách hàng</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let job of reportHistory">
-            <td class="col-code">{{ job.id }}</td>
-            <td>Báo cáo sản phẩm</td>
-            <td>{{ formatDate(job.requestedAt) }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="getStatusBadgeClass(job.status)">
-                {{ getStatusLabel(job.status) }}
-              </span>
-            </td>
-            <td>
-              <span class="format-badge">{{ job.fileFormat }}</span>
-            </td>
-            <td class="col-actions">
-              <button 
-                type="button" 
-                class="action-btn btn-download"
-                [class.is-loading]="isDownloading(job.id)"
-                [disabled]="job.status !== 'DONE' || isDownloading(job.id)"
-                (click)="downloadReport(job)"
-                [attr.aria-label]="isDownloading(job.id) ? 'Đang tải xuống báo cáo' : 'Tải xuống báo cáo'"
-                [attr.aria-busy]="isDownloading(job.id)"
-                [title]="isDownloading(job.id) ? 'Đang tải xuống...' : 'Tải xuống'">
-                <span class="action-spinner" *ngIf="isDownloading(job.id)" aria-hidden="true"></span>
-                <span *ngIf="!isDownloading(job.id)" aria-hidden="true">↓</span>
-              </button>
-
-            </td>
+          <tr *ngFor="let row of rows; let index = index">
+            <td>{{ page * size + index + 1 }}</td>
+            <td>{{ formatDate(row.completedAt) }}</td>
+            <td class="code">{{ row.orderCode }}</td>
+            <td><strong>{{ row.productCode }}</strong><small>{{ row.productName }}</small></td>
+            <td>{{ row.variantName || '—' }}</td>
+            <td class="number">{{ row.quantity }}</td>
+            <td class="number">{{ row.unitPrice | number:'1.0-0' }}</td>
+            <td class="number strong">{{ row.lineTotal | number:'1.0-0' }}</td>
+            <td>{{ orderTypeLabel(row.orderType) }}</td>
+            <td>{{ row.paymentMethod || '—' }}</td>
+            <td>{{ row.customerName }}</td>
           </tr>
         </tbody>
       </table>
-
-      <ng-template #emptyState>
-        <div class="empty-state">
-          <div class="empty-icon">📄</div>
-          <h3>Chưa có báo cáo nào</h3>
-          <p>Tạo báo cáo đầu tiên để bắt đầu theo dõi lịch sử</p>
-        </div>
-      </ng-template>
-
-      <app-admin-pagination
-        *ngIf="historyTotalElements > 0"
-        [page]="historyPage"
-        [totalPages]="historyTotalPages"
-        [totalItems]="historyTotalElements"
-        [pageSize]="historySize"
-        [pageSizeOptions]="[5, 10, 20, 50]"
-        itemLabel="báo cáo"
-        [disabled]="isLoadingHistory"
-        (pageChange)="goToHistoryPage($event)"
-        (pageSizeChange)="changeHistorySize($event)">
-      </app-admin-pagination>
     </div>
 
-    <div class="loading-state" *ngIf="isLoadingHistory">
-      <div class="spinner"></div>
-      <p>Đang tải lịch sử báo cáo...</p>
+    <div class="empty" *ngIf="!isLoadingPreview && !previewError && !rows.length">
+      <span class="material-symbols-outlined">receipt_long</span>
+      <strong>Không có dữ liệu phù hợp</strong>
+      <p>Hãy thay đổi chi nhánh, khoảng ngày hoặc sản phẩm.</p>
     </div>
-  </div>
+
+    <app-admin-pagination
+      *ngIf="totalElements > 0"
+      [page]="page"
+      [totalPages]="totalPages"
+      [totalItems]="totalElements"
+      [pageSize]="size"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      itemLabel="dòng"
+      [disabled]="isLoadingPreview"
+      (pageChange)="goToPage($event)"
+      (pageSizeChange)="changePageSize($event)">
+    </app-admin-pagination>
+  </section>
 </div>

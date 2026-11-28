@@ -110,6 +110,15 @@
           <input id="branch-prep-input" type="number" min="1" max="180" formControlName="averagePreparationMinutes">
         </label>
       </div>
+
+      <div class="field-row single" *ngIf="editingBranch">
+        <label>
+          <span>Trạng thái</span>
+          <app-combobox inputId="branch-status-input" formControlName="status" label="Trạng thái chi nhánh" placeholder="Trạng thái chi nhánh">
+            <ng-template comboOption *ngFor="let status of formStatusOptions" [value]="status" label="{{ statusLabel(status) }}"></ng-template>
+          </app-combobox>
+        </label>
+      </div>
     </div>
 
     <div class="form-card wide branch-map-field">
@@ -254,11 +263,8 @@
       <button *ngIf="accessControl.can('BRANCH_UPDATE')" type="button" class="icon-action" (click)="openEditForm(branch)" aria-label="Sửa chi nhánh" title="Sửa chi nhánh">
         <span class="material-symbols-outlined">edit</span>
       </button>
-      <button *ngIf="branch.status === 'INACTIVE' && accessControl.can('BRANCH_UPDATE')" type="button" class="icon-action restore" (click)="restoreBranch(branch)" aria-label="Mở lại chi nhánh" title="Mở lại chi nhánh">
-        <span class="material-symbols-outlined">restart_alt</span>
-      </button>
-      <button *ngIf="branch.status !== 'INACTIVE' && accessControl.can('BRANCH_UPDATE')" type="button" class="icon-action danger" (click)="closeBranch(branch)" aria-label="Đóng chi nhánh" title="Đóng chi nhánh">
-        <span class="material-symbols-outlined">lock</span>
+      <button *ngIf="accessControl.can('BRANCH_DELETE')" type="button" class="icon-action danger" (click)="deleteBranch(branch)" aria-label="Xóa chi nhánh" title="Xóa chi nhánh">
+        <span class="material-symbols-outlined">delete</span>
       </button>
     </div>
   </article>

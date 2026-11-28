@@ -137,7 +137,8 @@ export class ProductDetailComponent implements OnInit {
       availableIceLevels: rawValue.availableIceLevels,
       availableSugarLevels: rawValue.availableSugarLevels,
       featured: rawValue.featured,
-      bestSeller: rawValue.bestSeller
+      bestSeller: rawValue.bestSeller,
+      ...(this.isEditMode ? { status: rawValue.status } : {})
     };
   }
 }

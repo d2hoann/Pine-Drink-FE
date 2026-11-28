@@ -154,17 +154,15 @@ export class ProductListComponent implements OnInit {
     event.stopPropagation();
   }
 
-  toggleProductStatus(product: ProductSummary): void {
-    const nextStatus: Product['status'] = product.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    const actionLabel = nextStatus === 'ACTIVE' ? 'bật lại' : 'ẩn';
+  deleteProduct(product: ProductSummary): void {
     const productName = product.name || product.code || 'sản phẩm này';
 
     this.confirmDialog.confirm({
-      title: `Xác nhận ${actionLabel} sản phẩm?`,
-      message: `Bạn có chắc muốn ${actionLabel} ${productName}?`,
-      confirmText: nextStatus === 'ACTIVE' ? 'Bật lại' : 'Ẩn sản phẩm',
+      title: 'Xác nhận xóa sản phẩm?',
+      message: `Sản phẩm ${productName} sẽ bị xóa vĩnh viễn và không thể hoàn tác.`,
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
-      type: nextStatus === 'ACTIVE' ? 'success' : 'warning',
+      type: 'danger',
       affectedItems: [productName]
     }).subscribe((confirmed) => {
       if (!confirmed) return;
@@ -172,19 +170,15 @@ export class ProductListComponent implements OnInit {
       this.loading = true;
       this.errorMessage = '';
 
-      this.productService.updateProductStatus(product.id, nextStatus)
+      this.productService.deleteProduct(product.id)
         .pipe(finalize(() => (this.loading = false)))
         .subscribe({
-          next: () => this.loadProducts(this.pageData.page),
-          error: () => {
-            this.errorMessage = `Không thể ${actionLabel} sản phẩm. Vui lòng thử lại hoặc kiểm tra quyền thao tác.`;
+          next: () => {
+            const page = this.products.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+            this.loadProducts(page);
           }
         });
     });
-  }
-
-  deleteProduct(product: ProductSummary): void {
-    this.toggleProductStatus(product);
   }
 
   onPageChange(page: number): void {

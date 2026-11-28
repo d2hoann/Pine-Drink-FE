@@ -28,7 +28,8 @@ export class ProductVariantsPageComponent implements OnInit {
     variantName: ['', [Validators.required, Validators.maxLength(100)]],
     sizeLabel: ['', [Validators.maxLength(30)]],
     priceDelta: [0, [Validators.min(0)]],
-    displayOrder: [0, [Validators.min(0)]]
+    displayOrder: [0, [Validators.min(0)]],
+    status: ['ACTIVE' as ProductVariantSummary['status']]
   });
 
   products: ProductSummary[] = [];
@@ -85,7 +86,7 @@ export class ProductVariantsPageComponent implements OnInit {
     }
 
     this.selectedVariant = null;
-    this.form.reset({ variantName: '', sizeLabel: '', priceDelta: 0, displayOrder: this.nextDisplayOrder });
+    this.form.reset({ variantName: '', sizeLabel: '', priceDelta: 0, displayOrder: this.nextDisplayOrder, status: 'ACTIVE' });
     this.drawerOpen = true;
   }
 
@@ -103,7 +104,8 @@ export class ProductVariantsPageComponent implements OnInit {
             variantName: detail.variantName,
             sizeLabel: detail.sizeLabel || '',
             priceDelta: detail.priceDelta || 0,
-            displayOrder: detail.displayOrder || 0
+            displayOrder: detail.displayOrder || 0,
+            status: detail.status
           });
           this.drawerOpen = true;
         },
@@ -126,12 +128,12 @@ export class ProductVariantsPageComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const { status, ...payload } = this.form.getRawValue();
     this.saving = true;
     this.errorMessage = '';
 
     const request$ = this.selectedVariant
-      ? this.variantService.updateVariant(this.selectedProductId, this.selectedVariant.id, payload)
+      ? this.variantService.updateVariant(this.selectedProductId, this.selectedVariant.id, { ...payload, status })
       : this.variantService.createVariant(this.selectedProductId, payload);
 
     request$
@@ -180,31 +182,15 @@ export class ProductVariantsPageComponent implements OnInit {
       });
   }
 
-  toggleStatus(variant: ProductVariantSummary): void {
-    if (!this.selectedProductId) { return; }
-
-    const nextStatus = variant.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    this.loading = true;
-    this.errorMessage = '';
-
-    this.variantService.updateVariantStatus(this.selectedProductId, variant.id, { status: nextStatus })
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: () => this.loadVariants(this.pageData.page),
-        error: () => {
-          this.errorMessage = 'Không đổi được trạng thái biến thể. Vui lòng thử lại.';
-        }
-      });
-  }
 
   deleteVariant(variant: ProductVariantSummary): void {
     if (!this.selectedProductId) { return; }
 
     this.confirmDialog.confirm({
       title: 'Xác nhận xóa biến thể?',
-      message: `Biến thể ${variant.variantName} sẽ bị xóa khỏi sản phẩm.`,
+      message: `Biến thể ${variant.variantName} sẽ bị xóa vĩnh viễn khỏi sản phẩm.`,
       description: 'Thao tác này không thể hoàn tác.',
-      confirmText: 'Xóa biến thể',
+      confirmText: 'Xóa vĩnh viễn',
       cancelText: 'Hủy',
       type: 'danger',
       affectedItems: [variant.variantName]
@@ -217,9 +203,9 @@ export class ProductVariantsPageComponent implements OnInit {
       this.variantService.deleteVariant(this.selectedProductId, variant.id)
         .pipe(finalize(() => (this.loading = false)))
         .subscribe({
-          next: () => this.loadVariants(this.pageData.page),
-          error: () => {
-            this.errorMessage = 'Không xóa được biến thể. Vui lòng thử lại.';
+          next: () => {
+            const page = this.variants.length === 1 && this.pageData.page > 0 ? this.pageData.page - 1 : this.pageData.page;
+            this.loadVariants(page);
           }
         });
     });

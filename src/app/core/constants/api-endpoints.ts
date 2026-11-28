@@ -47,14 +47,14 @@ export const API_ENDPOINTS = {
   vouchers: {
     base: '/vouchers',
     customerAvailable: '/vouchers/customer/available',
-    detail: (id: string) => `/vouchers/${id}`,
-    status: (id: string) => `/vouchers/${id}/status`
+    detail: (id: string) => `/vouchers/${id}`
   },
   reports: {
     jobs: '/reports/jobs',
     jobDetail: (id: string) => `/reports/jobs/${id}`,
     jobDownload: (id: string) => `/reports/jobs/${id}/download`,
-    options: '/reports/jobs/options'
+    options: '/reports/jobs/options',
+    salesDetail: '/reports/sales-detail'
   },
   dashboard: {
     admin: '/admin/dashboard',
